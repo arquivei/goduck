@@ -44,6 +44,9 @@ func (e StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			continue
+		}
 		e.handleMessage(context.Background(), stream, msg)
 
 	}

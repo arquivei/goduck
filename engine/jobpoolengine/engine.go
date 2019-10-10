@@ -39,6 +39,9 @@ func (e JobPoolEngine) pollMessages(ctx context.Context) {
 		if err == io.EOF {
 			return
 		}
+		if err != nil {
+			continue
+		}
 		select {
 		case e.nextMessage <- msg:
 			continue
@@ -60,7 +63,8 @@ func (e JobPoolEngine) handleMessages(ctx context.Context) {
 }
 
 func (e JobPoolEngine) handleMessage(ctx context.Context, msg goduck.RawMessage) {
-	err := engine.SafeProcess(ctx, e.processor, msg.Bytes())
+	b := msg.Bytes()
+	err := engine.SafeProcess(ctx, e.processor, b)
 	if err == nil {
 		e.queue.Done(ctx, msg)
 	} else {
