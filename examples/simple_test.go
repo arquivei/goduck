@@ -15,7 +15,7 @@ func TestSimpleQueue(t *testing.T) {
 	processor := NewSimpleProcessor().(*simpleProcessor)
 	dataset := newSimpleTestDataset()
 
-	queue := implqueue.NewQueue(dataset.makeBytes())
+	queue := implqueue.NewMock(dataset.makeBytes())
 	engine := jobpoolengine.New(queue, processor, 2)
 	engine.Run(context.Background())
 	dataset.validate(processor.consumed)
@@ -25,7 +25,7 @@ func TestSimpleStream(t *testing.T) {
 	processor := NewSimpleProcessor().(*simpleProcessor)
 	dataset := newSimpleTestDataset()
 
-	stream := implstream.NewStream(dataset.makeBytes())
+	stream := implstream.NewMock(dataset.makeBytes())
 	engine := streamengine.New(processor, []goduck.Stream{stream})
 	engine.Run(context.Background())
 	dataset.validate(processor.consumed)

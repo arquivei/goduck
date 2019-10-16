@@ -40,7 +40,7 @@ func (e StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 		e.done <- struct{}{}
 	}()
 	for {
-		msg, err := stream.Poll(ctx)
+		msg, err := stream.Next(ctx)
 		if err == io.EOF {
 			break
 		}

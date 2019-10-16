@@ -15,12 +15,12 @@ func TestStream(t *testing.T) {
 	defer queue.Close()
 
 	for i := 0; i < nElems; i++ {
-		_, err := queue.Poll(ctx)
+		_, err := queue.Next(ctx)
 		assert.NoError(t, err, i)
 		err = queue.Done(ctx)
 		assert.NoError(t, err, i)
 	}
 	assert.True(t, queue.IsEmpty())
-	_, err := queue.Poll(ctx)
+	_, err := queue.Next(ctx)
 	assert.Equal(t, io.EOF, err)
 }

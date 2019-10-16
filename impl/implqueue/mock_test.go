@@ -16,7 +16,7 @@ func TestQueueShouldHandleConcurrentPools(t *testing.T) {
 	done := make(chan struct{})
 	for i := 0; i < nElems; i++ {
 		go func(idx int) {
-			msg, err := queue.Poll(ctx)
+			msg, err := queue.Next(ctx)
 			assert.NoError(t, err, idx)
 			err = queue.Done(ctx, msg)
 			assert.NoError(t, err, idx)
@@ -34,9 +34,9 @@ func TestQueueShouldBeFinite(t *testing.T) {
 	nElems := 10
 	queue := NewDefaultQueue(nElems)
 	for i := 0; i < nElems; i++ {
-		msg, _ := queue.Poll(ctx)
+		msg, _ := queue.Next(ctx)
 		queue.Done(ctx, msg)
 	}
-	_, err := queue.Poll(ctx)
+	_, err := queue.Next(ctx)
 	assert.Equal(t, io.EOF, err)
 }

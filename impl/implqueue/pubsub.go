@@ -25,7 +25,7 @@ type pubsubConsumer struct {
 	cancelFn     func()
 }
 
-func NewPubsubQueue(config PubsubConfigs) (goduck.Queue, error) {
+func NewPubsubQueue(config PubsubConfigs) (goduck.MessagePool, error) {
 	const op = errors.Op("implpubsub.NewPubsubQueue")
 	client, err := pubsub.NewClient(context.Background(), config.ProjectID)
 	if err != nil {
@@ -59,7 +59,7 @@ func (p *pubsubConsumer) start() {
 	p.Close()
 }
 
-func (p *pubsubConsumer) Poll(ctx context.Context) (goduck.RawMessage, error) {
+func (p *pubsubConsumer) Next(ctx context.Context) (goduck.RawMessage, error) {
 	const op = errors.Op("pubsubConsumer.Poll")
 	select {
 	case err, ok := <-p.errChannel:

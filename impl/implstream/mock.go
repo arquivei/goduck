@@ -18,7 +18,7 @@ type MockStream struct {
 	mtx           *sync.Mutex
 }
 
-func NewStream(items [][]byte) *MockStream {
+func NewMock(items [][]byte) *MockStream {
 	nElems := len(items)
 	messages := make([]goduck.RawMessage, len(items))
 
@@ -42,10 +42,10 @@ func NewDefaultStream(partition int, nElems int) *MockStream {
 	for i := 0; i < nElems; i++ {
 		messages[i] = []byte(prefix + strconv.Itoa(i))
 	}
-	return NewStream(messages)
+	return NewMock(messages)
 }
 
-func (m *MockStream) Poll(ctx context.Context) (goduck.RawMessage, error) {
+func (m *MockStream) Next(ctx context.Context) (goduck.RawMessage, error) {
 	const op = errors.Op("MockStream.Pool")
 	m.mtx.Lock()
 	defer m.mtx.Unlock()

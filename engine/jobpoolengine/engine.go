@@ -9,13 +9,13 @@ import (
 )
 
 type JobPoolEngine struct {
-	queue       goduck.Queue
+	queue       goduck.MessagePool
 	nextMessage chan goduck.RawMessage
 	nWorkers    int
 	processor   goduck.Processor
 }
 
-func New(queue goduck.Queue, processor goduck.Processor, nWorkers int) JobPoolEngine {
+func New(queue goduck.MessagePool, processor goduck.Processor, nWorkers int) JobPoolEngine {
 	engine := JobPoolEngine{
 		queue:       queue,
 		nextMessage: make(chan goduck.RawMessage),
@@ -35,7 +35,7 @@ func (e JobPoolEngine) Run(ctx context.Context) {
 func (e JobPoolEngine) pollMessages(ctx context.Context) {
 	defer close(e.nextMessage)
 	for {
-		msg, err := e.queue.Poll(ctx)
+		msg, err := e.queue.Next(ctx)
 		if err == io.EOF {
 			return
 		}

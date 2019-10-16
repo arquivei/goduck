@@ -17,7 +17,7 @@ type MockQueue struct {
 	mtx           *sync.Mutex
 }
 
-func NewQueue(items [][]byte) *MockQueue {
+func NewMock(items [][]byte) *MockQueue {
 	consumedItems := make([]bool, len(items))
 	messages := make([]goduck.RawMessage, len(items))
 
@@ -42,10 +42,10 @@ func NewDefaultQueue(nElems int) *MockQueue {
 	for i := 0; i < nElems; i++ {
 		messages[i] = []byte(strconv.Itoa(i))
 	}
-	return NewQueue(messages)
+	return NewMock(messages)
 }
 
-func (m *MockQueue) Poll(ctx context.Context) (goduck.RawMessage, error) {
+func (m *MockQueue) Next(ctx context.Context) (goduck.RawMessage, error) {
 	const op = errors.Op("MockQueue.Pool")
 	m.mtx.Lock()
 	defer m.mtx.Unlock()

@@ -45,7 +45,7 @@ func NewKafkaStream(config KafkaConfigs) goduck.Stream {
 	}
 }
 
-func (c *kafkaConsumer) Poll(ctx context.Context) (goduck.RawMessage, error) {
+func (c *kafkaConsumer) Next(ctx context.Context) (goduck.RawMessage, error) {
 	const op = errors.Op("kafkaConsumer.Poll")
 	msg, err := c.reader.FetchMessage(ctx)
 	if err != nil {
