@@ -18,6 +18,10 @@ type KafkaConfigs struct {
 	GroupID  string
 	Username string
 	Password string
+
+	// SegmentIO configs
+
+	CommitInterval time.Duration
 }
 
 type kafkaConsumer struct {
@@ -28,9 +32,10 @@ type kafkaConsumer struct {
 func NewKafkaStream(config KafkaConfigs) goduck.Stream {
 	reader := kafkaGo.NewReader(
 		kafkaGo.ReaderConfig{
-			GroupID: config.GroupID,
-			Brokers: config.Brokers,
-			Topic:   config.Topic,
+			GroupID:        config.GroupID,
+			Brokers:        config.Brokers,
+			Topic:          config.Topic,
+			CommitInterval: config.CommitInterval,
 			Dialer: &kafka.Dialer{
 				Timeout: 10 * time.Second,
 				SASLMechanism: plain.Mechanism{
