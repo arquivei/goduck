@@ -39,7 +39,7 @@ func (e StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 	defer func() {
 		e.done <- struct{}{}
 	}()
-	for {
+	for ctx.Err() == nil {
 		msg, err := stream.Next(ctx)
 		if err == io.EOF {
 			break
@@ -47,16 +47,17 @@ func (e StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 		if err != nil {
 			continue
 		}
-		e.handleMessage(context.Background(), stream, msg)
-
+		e.handleMessage(ctx, stream, msg)
 	}
 }
-
 func (e StreamEngine) handleMessage(ctx context.Context, stream goduck.Stream, msg goduck.RawMessage) {
 	for {
-		err := engine.SafeProcess(ctx, e.processor, msg.Bytes())
+		err := engine.SafeProcess(context.Background(), e.processor, msg.Bytes())
 		if err == nil {
 			break
+		}
+		if ctx.Err() != nil {
+			return
 		}
 	}
 	stream.Done(ctx)
