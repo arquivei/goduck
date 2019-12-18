@@ -62,5 +62,16 @@ func main {
 }
 ```
 
+
+## Important configuration
+### Kafka
+* Commit interval:
+Set this to allow asynchronous message processing between commits. 
+Without a value, defaults to every message having to be acknowledged before a new one
+is retrieved.
+This is bad to have when you should avoid message reprocessing. Suppose there is a failure
+and the engine stops executing while processing. The larger the commit interval is, higher
+is the chance of duplicating messages 
+
 To terminate the engine execution, a simple context cancellation will perform a shutdown
 of the application.
