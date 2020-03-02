@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/arquivei/goduck"
-	"github.com/arquivei/goduck/engine"
 )
 
 type JobPoolEngine struct {
@@ -63,8 +62,7 @@ func (e JobPoolEngine) handleMessages(ctx context.Context) {
 }
 
 func (e JobPoolEngine) handleMessage(ctx context.Context, msg goduck.RawMessage) {
-	b := msg.Bytes()
-	err := engine.SafeProcess(ctx, e.processor, b)
+	err := e.processor.Process(ctx, msg.Bytes())
 	if err == nil {
 		e.queue.Done(ctx, msg)
 	} else {

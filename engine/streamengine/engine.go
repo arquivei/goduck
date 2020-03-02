@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/arquivei/goduck"
-	"github.com/arquivei/goduck/engine"
 )
 
 type StreamEngine struct {
@@ -52,7 +51,7 @@ func (e StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 }
 func (e StreamEngine) handleMessage(ctx context.Context, stream goduck.Stream, msg goduck.RawMessage) {
 	for {
-		err := engine.SafeProcess(context.Background(), e.processor, msg.Bytes())
+		err := e.processor.Process(context.Background(), msg.Bytes())
 		if err == nil {
 			break
 		}

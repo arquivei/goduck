@@ -68,33 +68,3 @@ func TestStreamCancel(t *testing.T) {
 	close(wait)
 	<-done
 }
-
-// TestStreamPanic tests that the engine is resilient to panics
-func TestStreamPanic(t *testing.T) {
-	nWorkers := 1
-	idx := 0
-	processor := &implprocessor.MockProcessor{
-		Mtx:     &sync.Mutex{},
-		Success: map[string]bool{},
-		CustomFn: func() {
-			idx++
-			if idx%5 == 0 {
-				panic("explodes")
-			}
-		},
-	}
-	streams := make([]goduck.Stream, nWorkers)
-	for i := 0; i < nWorkers; i++ {
-		streams[i] = implstream.NewDefaultStream(i, 100)
-	}
-	defer func() {
-		for _, stream := range streams {
-			stream.Close()
-		}
-	}()
-	w := streamengine.New(processor, streams)
-	w.Run(context.Background())
-
-	assert.Equal(t, 100, len(processor.Success))
-
-}

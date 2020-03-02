@@ -52,26 +52,3 @@ func TestJobPoolCancel(t *testing.T) {
 	close(wait)
 	<-done
 }
-
-// TestJobPoolPanic tests that the engine is resilient to panics
-func TestJobPoolPanic(t *testing.T) {
-	nWorkers := 1
-	idx := 0
-	processor := &implprocessor.MockProcessor{
-		Mtx:     &sync.Mutex{},
-		Success: map[string]bool{},
-		CustomFn: func() {
-			idx++
-			if idx%5 == 0 {
-				panic("explodes")
-			}
-		},
-	}
-	queue := implqueue.NewDefaultQueue(100)
-	defer queue.Close()
-	w := jobpoolengine.New(queue, processor, nWorkers)
-	w.Run(context.Background())
-
-	assert.Equal(t, 100, len(processor.Success))
-
-}
