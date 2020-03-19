@@ -50,6 +50,15 @@ func NewKafkaStream(config KafkaConfigs) goduck.Stream {
 	}
 }
 
+// NewKafkaStreamWithCustomConfigs allows creating a kafka connection with all
+// configs from the SegmentIO library
+func NewKafkaStreamWithCustomConfigs(config kafkaGo.ReaderConfig) goduck.Stream {
+	reader := kafkaGo.NewReader(config)
+	return &kafkaConsumer{
+		reader: reader,
+	}
+}
+
 func (c *kafkaConsumer) Next(ctx context.Context) (goduck.RawMessage, error) {
 	const op = errors.Op("kafkaConsumer.Poll")
 	msg, err := c.reader.FetchMessage(ctx)

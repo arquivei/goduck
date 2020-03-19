@@ -57,3 +57,21 @@ type Processor interface {
 	// Depending on the engine, this method may be called concurrently.
 	Process(ctx context.Context, message []byte) error
 }
+
+// BatchProcessor is a basic low level message processor, that is able to handle
+// multiple messages at once.
+// It should be wrapped with middlewares such as logging, instrumenting,
+// and so on.
+type BatchProcessor interface {
+	// Process handles a multiple messages in its raw form, exactly as provided
+	// from the source. If the return is an error, the engine is responsible
+	// for retrying or marking the whole batch as failed. If the return is nil,
+	// the engine will mark the all the messages as complete.
+	//
+	// Exact guarantees depend on the engine/stream/queue implementation, but
+	// typically this method will be called at least once per message.
+	// Therefore, the implementation should be idempotent.
+	//
+	// Depending on the engine, this method may be called concurrently.
+	BatchProcess(ctx context.Context, messages [][]byte) error
+}

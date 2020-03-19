@@ -2,7 +2,6 @@ package jobpoolengine_test
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	"github.com/arquivei/goduck/engine/jobpoolengine"
@@ -13,11 +12,7 @@ import (
 
 func TestJobPool(t *testing.T) {
 	nWorkers := 5
-	processor := &implprocessor.MockProcessor{
-		Mtx:      &sync.Mutex{},
-		Success:  map[string]bool{},
-		CustomFn: func() {},
-	}
+	processor := implprocessor.New(nil)
 	queue := implqueue.NewDefaultQueue(100)
 	defer queue.Close()
 	w := jobpoolengine.New(queue, processor, nWorkers)
@@ -32,13 +27,9 @@ func TestJobPoolCancel(t *testing.T) {
 	nWorkers := 5
 	wait := make(chan struct{})
 	done := make(chan struct{})
-	processor := &implprocessor.MockProcessor{
-		Mtx:     &sync.Mutex{},
-		Success: map[string]bool{},
-		CustomFn: func() {
-			<-wait
-		},
-	}
+	processor := implprocessor.New(func() {
+		<-wait
+	})
 	queue := implqueue.NewDefaultQueue(100)
 	defer queue.Close()
 

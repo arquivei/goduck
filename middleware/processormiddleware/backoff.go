@@ -34,34 +34,61 @@ var DefaultBackoffConfig = BackoffConfig{
 	Factor:       1.5,
 }
 
-type backoffMiddleware struct {
+type processorBackoffMiddleware struct {
 	next   goduck.Processor
+	config BackoffConfig
+}
+
+type batchProcessorBackoffMiddleware struct {
+	next   goduck.BatchProcessor
 	config BackoffConfig
 }
 
 // WrapWithBackoffMiddleware tries to execute @next.Process() until it
 // succeeds. Each failure is followed by an exponentially increasing delay.
 func WrapWithBackoffMiddleware(next goduck.Processor, config BackoffConfig) goduck.Processor {
-	return backoffMiddleware{
+	return processorBackoffMiddleware{
 		next:   next,
 		config: config,
 	}
 }
 
-func (w backoffMiddleware) Process(ctx context.Context, msg []byte) error {
-	delay := w.config.InitialDelay
-	err := w.next.Process(ctx, msg)
-	for err != nil {
-		time.Sleep(addSpread(delay, w.config.Spread))
+// WrapBatchProcessorWithBackoffMiddleware tries to execute @next.BatchProcess() until it
+// succeeds. Each failure is followed by an exponentially increasing delay.
+func WrapBatchProcessorWithBackoffMiddleware(next goduck.BatchProcessor, config BackoffConfig) goduck.BatchProcessor {
+	return batchProcessorBackoffMiddleware{
+		next:   next,
+		config: config,
+	}
+}
 
-		delay = time.Duration(float64(delay) * w.config.Factor)
-		if delay > w.config.MaxDelay {
-			delay = w.config.MaxDelay
+func (w batchProcessorBackoffMiddleware) BatchProcess(ctx context.Context, msg [][]byte) error {
+	runWithBackoff(w.config, func() error {
+		return w.next.BatchProcess(ctx, msg)
+	})
+	return nil
+}
+
+func (w processorBackoffMiddleware) Process(ctx context.Context, msg []byte) error {
+	runWithBackoff(w.config, func() error {
+		return w.next.Process(ctx, msg)
+	})
+	return nil
+}
+
+func runWithBackoff(config BackoffConfig, runnable func() error) {
+	delay := config.InitialDelay
+	err := runnable()
+	for err != nil {
+		time.Sleep(addSpread(delay, config.Spread))
+
+		delay = time.Duration(float64(delay) * config.Factor)
+		if delay > config.MaxDelay {
+			delay = config.MaxDelay
 		}
 
-		err = w.next.Process(ctx, msg)
+		err = runnable()
 	}
-	return nil
 }
 
 func addSpread(delay time.Duration, spread float64) time.Duration {
