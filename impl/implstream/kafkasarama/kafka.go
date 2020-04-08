@@ -79,8 +79,7 @@ func (c *goduckStream) Next(ctx context.Context) (goduck.RawMessage, error) {
 	return rawMessage(msg.Value), nil
 }
 func (c *goduckStream) Done(ctx context.Context) error {
-	const op = errors.Op("kafkasarama.goduckStream.Done")
-	c.handler.Done(ctx)
+	c.handler.Done()
 	return nil
 }
 
@@ -89,6 +88,6 @@ func (c *goduckStream) Close() error {
 	c.cancelFn()
 
 	// closes message channel, and Next() calls return io.EOF from now on
-	close(c.handler.done)
+	c.handler.Close()
 	return nil
 }

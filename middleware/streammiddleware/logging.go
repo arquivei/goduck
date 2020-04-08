@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/arquivei/goduck"
+
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/rs/zerolog/log"
-
-	"github.com/arquivei/goduck"
 )
 
 type streamLogging struct {
@@ -34,6 +34,7 @@ func (s streamLogging) Next(ctx context.Context) (response goduck.RawMessage, er
 		} else {
 			log.Debug().
 				Dur("took", took).
+				Int("size", len(response.Bytes())).
 				Msg("Successfully fetched next message")
 		}
 
