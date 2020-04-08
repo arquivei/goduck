@@ -94,7 +94,7 @@ func (h *consumerGroupHandler) Close() {
 	defer func() {
 		// this method can be called more than once, which would panic
 		if err := recover(); err != nil {
-			log.Debug().Err(errors.E(err)).Msg("Attempting to close twice")
+			log.Debug().Err(errors.E(op, err)).Msg("Attempting to close twice")
 		}
 	}()
 
