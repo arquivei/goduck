@@ -8,6 +8,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/arquivei/foundationkit/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type consumerGroupHandler struct {
@@ -89,9 +90,12 @@ func (h *consumerGroupHandler) Done() {
 }
 
 func (h *consumerGroupHandler) Close() {
+	const op = errors.Op("kafkasarama.consumerGroupHandler.Close")
 	defer func() {
 		// this method can be called more than once, which would panic
-		recover()
+		if err := recover(); err != nil {
+			log.Debug().Err(errors.E(err)).Msg("Attempting to close twice")
+		}
 	}()
 
 	// Inform threads to stop pushing messages
