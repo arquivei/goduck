@@ -8,11 +8,7 @@ import (
 	"github.com/arquivei/goduck"
 	"github.com/segmentio/kafka-go"
 	kafkaGo "github.com/segmentio/kafka-go"
-	_ "github.com/segmentio/kafka-go/gzip"
-	_ "github.com/segmentio/kafka-go/lz4"
 	"github.com/segmentio/kafka-go/sasl/plain"
-	_ "github.com/segmentio/kafka-go/snappy"
-	_ "github.com/segmentio/kafka-go/zstd"
 )
 
 // KafkaConfigs contains the configs for kafka connection
