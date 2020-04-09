@@ -16,10 +16,11 @@ type consumerGroupHandler struct {
 	sessionLock *sync.RWMutex
 
 	msgChan             chan *sarama.ConsumerMessage
+	msgChanLock         *sync.RWMutex
+	msgChanIsOpen       bool
 	lastUnackedMessages map[string]*sarama.ConsumerMessage
 
-	done      chan struct{}
-	waitGroup *sync.WaitGroup
+	done chan struct{}
 }
 
 func newHandler() *consumerGroupHandler {
@@ -27,10 +28,11 @@ func newHandler() *consumerGroupHandler {
 		sessionLock: &sync.RWMutex{},
 
 		msgChan:             make(chan *sarama.ConsumerMessage),
+		msgChanLock:         &sync.RWMutex{},
+		msgChanIsOpen:       true,
 		lastUnackedMessages: map[string]*sarama.ConsumerMessage{},
 
-		done:      make(chan struct{}),
-		waitGroup: &sync.WaitGroup{},
+		done: make(chan struct{}),
 	}
 }
 
@@ -47,8 +49,13 @@ func (h *consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	h.waitGroup.Add(1)
-	defer h.waitGroup.Done()
+	h.msgChanLock.RLock()
+	defer h.msgChanLock.RUnlock()
+
+	if !h.msgChanIsOpen {
+		return nil
+	}
+
 	for msg := range claim.Messages() {
 		select {
 		case h.msgChan <- msg:
@@ -84,6 +91,10 @@ func (h *consumerGroupHandler) Done() {
 	h.sessionLock.RLock()
 	defer h.sessionLock.RUnlock()
 
+	if h.session == nil {
+		return
+	}
+
 	for _, msg := range h.lastUnackedMessages {
 		h.session.MarkMessage(msg, "")
 	}
@@ -102,7 +113,8 @@ func (h *consumerGroupHandler) Close() {
 	close(h.done)
 
 	// Wait for them to stop
-	h.waitGroup.Wait()
+	h.msgChanLock.Lock()
+	defer h.msgChanLock.Unlock()
 
 	// No further messages will be sent
 	close(h.msgChan)
