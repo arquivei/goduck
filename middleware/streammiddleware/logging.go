@@ -27,7 +27,11 @@ func (s streamLogging) Next(ctx context.Context) (response goduck.RawMessage, er
 	defer func(begin time.Time) {
 		took := time.Since(begin)
 		if err != nil {
-			log.Error().
+			logger := log.Error()
+			if ctx.Err() != nil {
+				logger = log.Debug()
+			}
+			logger.
 				Dur("took", took).
 				Err(errors.E(op, err)).
 				Msg("Error fetching next message")
