@@ -63,32 +63,40 @@ func WrapBatchProcessorWithBackoffMiddleware(next goduck.BatchProcessor, config 
 }
 
 func (w batchProcessorBackoffMiddleware) BatchProcess(ctx context.Context, msg [][]byte) error {
-	runWithBackoff(w.config, func() error {
+	return runWithBackoff(ctx, w.config, func(ctx context.Context) error {
 		return w.next.BatchProcess(ctx, msg)
 	})
-	return nil
 }
 
 func (w processorBackoffMiddleware) Process(ctx context.Context, msg []byte) error {
-	runWithBackoff(w.config, func() error {
+	return runWithBackoff(ctx, w.config, func(ctx context.Context) error {
 		return w.next.Process(ctx, msg)
 	})
-	return nil
 }
 
-func runWithBackoff(config BackoffConfig, runnable func() error) {
+func runWithBackoff(ctx context.Context, config BackoffConfig, runnable func(context.Context) error) error {
 	delay := config.InitialDelay
-	err := runnable()
+	err := runnable(ctx)
 	for err != nil {
-		time.Sleep(addSpread(delay, config.Spread))
+		amountToSleep := addSpread(delay, config.Spread)
+
+		waitCtx, cancelFn := context.WithTimeout(context.Background(), amountToSleep)
+		defer cancelFn()
+
+		select {
+		case <-waitCtx.Done():
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 
 		delay = time.Duration(float64(delay) * config.Factor)
 		if delay > config.MaxDelay {
 			delay = config.MaxDelay
 		}
 
-		err = runnable()
+		err = runnable(ctx)
 	}
+	return nil
 }
 
 func addSpread(delay time.Duration, spread float64) time.Duration {
