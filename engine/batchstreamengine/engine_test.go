@@ -2,6 +2,7 @@ package batchstreamengine_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/arquivei/goduck/engine/batchstreamengine"
 	"github.com/arquivei/goduck/impl/implprocessor"
 	"github.com/arquivei/goduck/impl/implstream"
+
+	"github.com/arquivei/foundationkit/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -57,8 +60,9 @@ func TestStreamCancel(t *testing.T) {
 	nWorkers := 5
 	wait := make(chan struct{})
 	done := make(chan struct{})
-	processor := implprocessor.New(func() {
+	processor := implprocessor.New(func() error {
 		<-wait
+		return nil
 	})
 	streams := make([]goduck.Stream, nWorkers)
 	for i := 0; i < nWorkers; i++ {
@@ -79,4 +83,36 @@ func TestStreamCancel(t *testing.T) {
 	cancelFn()
 	close(wait)
 	<-done
+}
+
+// TestStreamFatal asserts that the engine stops when the processor returns a
+// fatal error
+func TestStreamFatal(t *testing.T) {
+	nWorkers := 5
+	failAfter := 10
+	expectedErr := errors.E("my error", errors.SeverityFatal)
+
+	count := 0
+	countMtx := &sync.Mutex{}
+	processor := implprocessor.New(func() error {
+		countMtx.Lock()
+		defer countMtx.Unlock()
+		count++
+		if count >= failAfter {
+			return expectedErr
+		}
+		return nil
+	})
+	streams := make([]goduck.Stream, nWorkers)
+	for i := 0; i < nWorkers; i++ {
+		streams[i] = implstream.NewDefaultStream(i, 100)
+	}
+	defer func() {
+		for _, stream := range streams {
+			stream.Close()
+		}
+	}()
+	w := batchstreamengine.New(processor, 10, 100*time.Millisecond, streams)
+	err := w.Run(context.Background())
+	assert.Equal(t, expectedErr, err)
 }

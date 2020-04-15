@@ -10,10 +10,10 @@ type MockProcessor struct {
 	mtx           *sync.Mutex
 	jobsProcessed int
 	Success       map[string]bool
-	CustomFn      func()
+	CustomFn      func() error
 }
 
-func New(customFn func()) *MockProcessor {
+func New(customFn func() error) *MockProcessor {
 	return &MockProcessor{
 		mtx:           &sync.Mutex{},
 		jobsProcessed: 0,
@@ -33,7 +33,7 @@ func (m *MockProcessor) Process(ctx context.Context, message []byte) error {
 	}
 	m.Success[strMessage] = true
 	if m.CustomFn != nil {
-		m.CustomFn()
+		return m.CustomFn()
 	}
 	return nil
 }
@@ -53,7 +53,7 @@ func (m *MockProcessor) BatchProcess(ctx context.Context, messages [][]byte) err
 	}
 
 	if m.CustomFn != nil {
-		m.CustomFn()
+		return m.CustomFn()
 	}
 	return nil
 }

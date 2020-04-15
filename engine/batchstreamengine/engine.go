@@ -3,9 +3,12 @@ package batchstreamengine
 import (
 	"context"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/arquivei/goduck"
+
+	"github.com/arquivei/foundationkit/errors"
 )
 
 type BatchStreamEngine struct {
@@ -14,7 +17,10 @@ type BatchStreamEngine struct {
 	maxBatchSize   int
 	maxTimeout     time.Duration
 	batchProcessor goduck.BatchProcessor
-	done           chan struct{}
+	workersWG      *sync.WaitGroup
+
+	cancelFn       func()
+	processorError error
 }
 
 func New(
@@ -29,25 +35,27 @@ func New(
 		batchProcessor: processor,
 		maxBatchSize:   maxBatchSize,
 		maxTimeout:     maxBatchTimeout,
-		done:           make(chan struct{}),
+		workersWG:      &sync.WaitGroup{},
+		cancelFn:       nil,
+		processorError: nil,
 	}
 	return engine
 }
 
-func (e *BatchStreamEngine) Run(ctx context.Context) {
+func (e *BatchStreamEngine) Run(ctx context.Context) error {
+	ctx, e.cancelFn = context.WithCancel(ctx)
+
+	e.workersWG.Add(e.nWorkers)
 	for i := 0; i < e.nWorkers; i++ {
 		go e.pollMessages(ctx, e.streams[i])
 	}
-	for i := 0; i < e.nWorkers; i++ {
-		<-e.done
-	}
-	close(e.done)
+	e.workersWG.Wait()
+
+	return e.processorError
 }
 
 func (e *BatchStreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
-	defer func() {
-		e.done <- struct{}{}
-	}()
+	defer e.workersWG.Done()
 	for ctx.Err() == nil {
 		msgs, err := e.pollMessagesBatch(ctx, stream)
 		if ctx.Err() != nil {
@@ -94,9 +102,18 @@ func (e *BatchStreamEngine) handleMessages(ctx context.Context, stream goduck.St
 		if err == nil {
 			break
 		}
+		if errors.GetSeverity(err) == errors.SeverityFatal {
+			e.selfClose(err)
+			return
+		}
 		if ctx.Err() != nil {
 			return
 		}
 	}
 	stream.Done(ctx)
+}
+
+func (e *BatchStreamEngine) selfClose(err error) {
+	e.cancelFn()
+	e.processorError = err
 }
