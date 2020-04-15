@@ -8,17 +8,25 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/arquivei/foundationkit/errors"
+	"github.com/imkira/go-observer"
 	"github.com/rs/zerolog/log"
 )
+
+type internalMessage struct {
+	msg  *sarama.ConsumerMessage
+	done chan struct{}
+}
 
 type consumerGroupHandler struct {
 	session     sarama.ConsumerGroupSession
 	sessionLock *sync.RWMutex
 
-	msgChan             chan *sarama.ConsumerMessage
+	msgChan             chan internalMessage
 	msgChanLock         *sync.RWMutex
 	msgChanIsOpen       bool
 	lastUnackedMessages map[string]*sarama.ConsumerMessage
+
+	hasInFlightMessages observer.Property
 
 	done chan struct{}
 }
@@ -27,10 +35,12 @@ func newHandler() *consumerGroupHandler {
 	return &consumerGroupHandler{
 		sessionLock: &sync.RWMutex{},
 
-		msgChan:             make(chan *sarama.ConsumerMessage),
+		msgChan:             make(chan internalMessage),
 		msgChanLock:         &sync.RWMutex{},
 		msgChanIsOpen:       true,
 		lastUnackedMessages: map[string]*sarama.ConsumerMessage{},
+
+		hasInFlightMessages: observer.NewProperty(false),
 
 		done: make(chan struct{}),
 	}
@@ -43,11 +53,25 @@ func (h *consumerGroupHandler) Setup(session sarama.ConsumerGroupSession) error 
 	return nil
 }
 func (h *consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
+	h.waitForDone()
+	h.eraseSession()
+	return nil
+}
+
+func (h *consumerGroupHandler) eraseSession() {
 	h.sessionLock.Lock()
 	defer h.sessionLock.Unlock()
 	h.session = nil
-	return nil
 }
+
+func (h *consumerGroupHandler) waitForDone() {
+	valueObserver := h.hasInFlightMessages.Observe()
+	hasInflightMessages := valueObserver.Value().(bool)
+	for hasInflightMessages {
+		hasInflightMessages = valueObserver.WaitNext().(bool)
+	}
+}
+
 func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	h.msgChanLock.RLock()
 	defer h.msgChanLock.RUnlock()
@@ -56,10 +80,16 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 		return nil
 	}
 
-	for msg := range claim.Messages() {
+	for consumerMessage := range claim.Messages() {
+		msg := internalMessage{
+			msg:  consumerMessage,
+			done: make(chan struct{}),
+		}
+
 		select {
 		case h.msgChan <- msg:
-			// successfully sent
+			// waits for message to be successfully stored
+			<-msg.done
 		case <-h.done:
 			// handler should stop pushing messages
 			return nil
@@ -73,18 +103,20 @@ func (h *consumerGroupHandler) Next(ctx context.Context) (*sarama.ConsumerMessag
 	case <-ctx.Done():
 		// goduckStream.Next ctx is closed
 		return nil, errors.E(op, ctx.Err())
-	case msg, ok := <-h.msgChan:
+	case internalMsg, ok := <-h.msgChan:
 		if !ok {
 			return nil, io.EOF
 		}
-		h.storeLastMessage(msg)
-		return msg, nil
+		h.storeLastMessage(internalMsg.msg)
+		close(internalMsg.done)
+		return internalMsg.msg, nil
 	}
 }
 
 func (h *consumerGroupHandler) storeLastMessage(msg *sarama.ConsumerMessage) {
 	key := fmt.Sprintf("%s:%d", msg.Topic, msg.Partition)
 	h.lastUnackedMessages[key] = msg
+	h.hasInFlightMessages.Update(true)
 }
 
 func (h *consumerGroupHandler) Done() {
@@ -94,10 +126,11 @@ func (h *consumerGroupHandler) Done() {
 	if h.session == nil {
 		return
 	}
-
 	for _, msg := range h.lastUnackedMessages {
 		h.session.MarkMessage(msg, "")
 	}
+
+	h.hasInFlightMessages.Update(false)
 }
 
 func (h *consumerGroupHandler) Close() {

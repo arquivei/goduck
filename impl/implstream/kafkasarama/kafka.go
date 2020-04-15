@@ -63,7 +63,6 @@ func (c *goduckStream) run() {
 		err := c.consumer.Consume(ctx, c.topics, c.handler)
 		if err != nil {
 			log.Error().Err(err).Msg("Error consuming messages")
-			break
 		}
 	}
 	c.Close()
