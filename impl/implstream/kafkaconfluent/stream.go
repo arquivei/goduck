@@ -194,7 +194,7 @@ func (c *goduckStream) Done(ctx context.Context) error {
 		kafkaTp := kafka.TopicPartition{
 			Topic:     tp.topic,
 			Partition: tp.partition,
-			Offset:    offset,
+			Offset:    offset + 1,
 		}
 		offsets = append(offsets, kafkaTp)
 	}
