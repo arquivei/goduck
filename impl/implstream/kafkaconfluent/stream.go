@@ -25,9 +25,9 @@ type Config struct {
 	Username string
 	Password string
 
-	// rdKafkaConfig can specify librdkafka configs. If this is variable is set, the
+	// RDKafkaConfig can specify librdkafka configs. If this is variable is set, the
 	// other variables (Brokers, GroupID, Username and Password) are ignored
-	rdKafkaConfig *kafka.ConfigMap
+	RDKafkaConfig *kafka.ConfigMap
 
 	Topics []string
 
@@ -52,7 +52,7 @@ type goduckStream struct {
 
 // MustNew creates a confluent-kafka-go goduck.Stream with default configs
 func MustNew(config Config) goduck.Stream {
-	if config.rdKafkaConfig == nil {
+	if config.RDKafkaConfig == nil {
 		if config.Brokers == nil || len(config.Brokers) == 0 {
 			panic("Empty broker")
 		}
@@ -65,7 +65,7 @@ func MustNew(config Config) goduck.Stream {
 			panic("Empty password")
 		}
 
-		config.rdKafkaConfig = &kafka.ConfigMap{
+		config.RDKafkaConfig = &kafka.ConfigMap{
 			"bootstrap.servers":        strings.Join(config.Brokers, ","),
 			"group.id":                 config.GroupID,
 			"auto.offset.reset":        "earliest",
@@ -87,7 +87,7 @@ func MustNew(config Config) goduck.Stream {
 }
 
 func mustCreateStream(config Config) goduck.Stream {
-	c, err := kafka.NewConsumer(config.rdKafkaConfig)
+	c, err := kafka.NewConsumer(config.RDKafkaConfig)
 	if err != nil {
 		panic(err)
 	}
