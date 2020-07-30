@@ -96,13 +96,13 @@ func mustCreateStream(config Config) goduck.Stream {
 	if err != nil {
 		panic(err)
 	}
-
+	done := make(chan struct{})
 	stream := &goduckStream{
 		consumer:            c,
-		controller:          newRequestController(),
+		controller:          newRequestController(done),
 		unackedMessages:     make(map[topicPartition]kafka.Offset),
 		unackedMessagesLock: &sync.Mutex{},
-		done:                make(chan struct{}),
+		done:                done,
 		waitGroup:           &sync.WaitGroup{},
 		timeout:             config.PoolTimeout,
 	}
@@ -209,7 +209,9 @@ func (c *goduckStream) Done(ctx context.Context) error {
 }
 
 func (c *goduckStream) Close() error {
-	c.controller.close()
+	// from now on, no further attempts to pool new messages will be made.
+	// if there is an in-flight ReadMessage() call, it will be finished, but
+	// its result won't be delivered
 	close(c.done)
 
 	c.waitGroup.Wait()

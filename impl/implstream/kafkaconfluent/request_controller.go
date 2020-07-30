@@ -22,16 +22,20 @@ type requestController struct {
 	done               chan struct{}
 }
 
-func newRequestController() *requestController {
+func newRequestController(done chan struct{}) *requestController {
 	return &requestController{
 		isPending:          false,
 		workerNotification: make(chan struct{}, 1),
 		resultChannel:      make(chan *kafka.Message),
+		done:               done,
 	}
 }
 
+// requestJob notifies the worker that a new job must be processed. If the
+// worker was already notified, it does nothing.
 func (r *requestController) requestJob() error {
 	if r.isPending {
+		// someone already requested a job, no further action is needed
 		return nil
 	}
 	r.isPending = true
@@ -44,20 +48,28 @@ func (r *requestController) requestJob() error {
 	}
 }
 
+// getResult waits for the worker to complete the job and returns the result.
+// 3 things can happen here:
+// - The job result arrives. This puts the controller in the !pending state.
+// - The controller was closed. Returns EOF
+// - The context expired. An error will be returned, but getResult can be
+//   called again later.
 func (r *requestController) getResult(ctx context.Context) (*kafka.Message, error) {
 	const op = errors.Op("getResult")
+
 	select {
-	case item, ok := <-r.resultChannel:
+	case item := <-r.resultChannel:
 		r.isPending = false
-		if !ok {
-			return nil, io.EOF
-		}
 		return item, nil
+	case <-r.done:
+		return nil, io.EOF
 	case <-ctx.Done():
 		return nil, errors.E(op, ctx.Err())
 	}
 }
 
+// getNextJob waits until the requester sends a new job. If the controller
+// closes, returns EOF
 func (r *requestController) getNextJob() error {
 	select {
 	case <-r.workerNotification:
@@ -67,6 +79,8 @@ func (r *requestController) getNextJob() error {
 	}
 }
 
+// submitResult waits until the requester receiver gets the result. If the
+// controller closes, returns EOF
 func (r *requestController) submitResult(item *kafka.Message) error {
 	select {
 	case r.resultChannel <- item:
@@ -74,9 +88,4 @@ func (r *requestController) submitResult(item *kafka.Message) error {
 	case <-r.done:
 		return io.EOF
 	}
-}
-
-// close makes all future requests return an io.EOF error
-func (r *requestController) close() {
-	close(r.resultChannel)
 }
