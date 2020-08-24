@@ -5,10 +5,14 @@ import (
 	"io"
 
 	"github.com/arquivei/goduck"
+	"github.com/arquivei/goduck/middleware/processormiddleware"
+	"github.com/go-kit/kit/endpoint"
 
 	"github.com/arquivei/foundationkit/errors"
 )
 
+// JobPoolEngine processes the messages from a JobPool in parallel, without any
+// ordering guarantees
 type JobPoolEngine struct {
 	queue       goduck.MessagePool
 	nextMessage chan goduck.RawMessage
@@ -19,6 +23,16 @@ type JobPoolEngine struct {
 	processorError error
 }
 
+// NewFromEndpoint creates a JobPoolEngine from a go-kit endpoint
+func NewFromEndpoint(queue goduck.MessagePool, processor endpoint.Endpoint, nWorkers int) *JobPoolEngine {
+	return New(
+		queue,
+		processormiddleware.WrapEndpointInProcessor(processor),
+		nWorkers,
+	)
+}
+
+// New creates a new JobPoolEngine
 func New(queue goduck.MessagePool, processor goduck.Processor, nWorkers int) *JobPoolEngine {
 	engine := &JobPoolEngine{
 		queue:          queue,
@@ -31,6 +45,7 @@ func New(queue goduck.MessagePool, processor goduck.Processor, nWorkers int) *Jo
 	return engine
 }
 
+// Run starts processing the messages, until @ctx is closed
 func (e *JobPoolEngine) Run(ctx context.Context) error {
 	ctx, e.cancelFn = context.WithCancel(ctx)
 	for i := 0; i < e.nWorkers; i++ {

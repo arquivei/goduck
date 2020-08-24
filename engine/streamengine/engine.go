@@ -6,10 +6,14 @@ import (
 	"sync"
 
 	"github.com/arquivei/goduck"
+	"github.com/arquivei/goduck/middleware/processormiddleware"
+	"github.com/go-kit/kit/endpoint"
 
 	"github.com/arquivei/foundationkit/errors"
 )
 
+// StreamEngine is an engine that processes a of messages from a stream, with
+// the order preserved.
 type StreamEngine struct {
 	streams   []goduck.Stream
 	nWorkers  int
@@ -20,6 +24,18 @@ type StreamEngine struct {
 	processorError error
 }
 
+// NewFromEndpoint creates a StreamEngine from a go-kit endpoint
+func NewFromEndpoint(
+	processor endpoint.Endpoint,
+	streams []goduck.Stream,
+) *StreamEngine {
+	return New(
+		processormiddleware.WrapEndpointInProcessor(processor),
+		streams,
+	)
+}
+
+// New creates a new StreamEngine
 func New(processor goduck.Processor, streams []goduck.Stream) *StreamEngine {
 	engine := &StreamEngine{
 		streams:        streams,
@@ -32,6 +48,7 @@ func New(processor goduck.Processor, streams []goduck.Stream) *StreamEngine {
 	return engine
 }
 
+// Run starts processing the messages, until @ctx is closed
 func (e *StreamEngine) Run(ctx context.Context) error {
 	ctx, e.cancelFn = context.WithCancel(ctx)
 
@@ -56,6 +73,7 @@ func (e *StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 		e.handleMessage(ctx, stream, msg)
 	}
 }
+
 func (e *StreamEngine) handleMessage(ctx context.Context, stream goduck.Stream, msg goduck.RawMessage) {
 	for {
 		err := e.processor.Process(context.Background(), msg.Bytes())

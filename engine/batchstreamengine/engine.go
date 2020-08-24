@@ -7,10 +7,14 @@ import (
 	"time"
 
 	"github.com/arquivei/goduck"
+	"github.com/arquivei/goduck/middleware/processormiddleware"
 
 	"github.com/arquivei/foundationkit/errors"
+	"github.com/go-kit/kit/endpoint"
 )
 
+// BatchStreamEngine is an engine that processes a batch of messages from
+// a stream, with the order preserved.
 type BatchStreamEngine struct {
 	streams        []goduck.Stream
 	nWorkers       int
@@ -23,6 +27,22 @@ type BatchStreamEngine struct {
 	processorError error
 }
 
+// NewFromEndpoint creates a BatchProcessor from a go-kit endpoint
+func NewFromEndpoint(
+	processor endpoint.Endpoint,
+	maxBatchSize int,
+	maxBatchTimeout time.Duration,
+	streams []goduck.Stream,
+) *BatchStreamEngine {
+	return New(
+		processormiddleware.WrapEndpointInProcessor(processor),
+		maxBatchSize,
+		maxBatchTimeout,
+		streams,
+	)
+}
+
+// New creates a new BackStreamEngine.
 func New(
 	processor goduck.BatchProcessor,
 	maxBatchSize int,
@@ -42,6 +62,7 @@ func New(
 	return engine
 }
 
+// Run starts processing the messages, until @ctx is closed
 func (e *BatchStreamEngine) Run(ctx context.Context) error {
 	ctx, e.cancelFn = context.WithCancel(ctx)
 

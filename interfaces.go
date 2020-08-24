@@ -75,3 +75,10 @@ type BatchProcessor interface {
 	// Depending on the engine, this method may be called concurrently.
 	BatchProcess(ctx context.Context, messages [][]byte) error
 }
+
+// AnyProcessor refer to structs that can behave both as Processor and
+// BatchProcessor
+type AnyProcessor interface {
+	Processor
+	BatchProcessor
+}
