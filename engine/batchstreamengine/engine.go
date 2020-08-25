@@ -29,14 +29,14 @@ type BatchStreamEngine struct {
 
 // NewFromEndpoint creates a BatchProcessor from a go-kit endpoint
 func NewFromEndpoint(
-	processor endpoint.Endpoint,
+	e endpoint.Endpoint,
 	decoder goduck.EndpointBatchDecoder,
 	maxBatchSize int,
 	maxBatchTimeout time.Duration,
 	streams []goduck.Stream,
 ) *BatchStreamEngine {
 	return New(
-		gokithelper.MustNewEndpointBatchProcessor(processor, decoder),
+		gokithelper.MustNewEndpointBatchProcessor(e, decoder),
 		maxBatchSize,
 		maxBatchTimeout,
 		streams,

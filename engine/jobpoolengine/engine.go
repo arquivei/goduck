@@ -25,14 +25,14 @@ type JobPoolEngine struct {
 
 // NewFromEndpoint creates a JobPoolEngine from a go-kit endpoint
 func NewFromEndpoint(
-	processor endpoint.Endpoint,
+	e endpoint.Endpoint,
 	decoder goduck.EndpointDecoder,
 	queue goduck.MessagePool,
 	nWorkers int,
 ) *JobPoolEngine {
 	return New(
 		queue,
-		gokithelper.MustNewEndpointProcessor(processor, decoder),
+		gokithelper.MustNewEndpointProcessor(e, decoder),
 		nWorkers,
 	)
 }

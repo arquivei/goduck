@@ -26,12 +26,12 @@ type StreamEngine struct {
 
 // NewFromEndpoint creates a StreamEngine from a go-kit endpoint
 func NewFromEndpoint(
-	processor endpoint.Endpoint,
+	e endpoint.Endpoint,
 	decoder goduck.EndpointDecoder,
 	streams []goduck.Stream,
 ) *StreamEngine {
 	return New(
-		gokithelper.MustNewEndpointProcessor(processor, decoder),
+		gokithelper.MustNewEndpointProcessor(e, decoder),
 		streams,
 	)
 }
