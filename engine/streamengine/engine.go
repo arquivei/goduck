@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/arquivei/goduck"
-	"github.com/arquivei/goduck/middleware/processormiddleware"
+	"github.com/arquivei/goduck/gokithelper"
 	"github.com/go-kit/kit/endpoint"
 
 	"github.com/arquivei/foundationkit/errors"
@@ -27,10 +27,11 @@ type StreamEngine struct {
 // NewFromEndpoint creates a StreamEngine from a go-kit endpoint
 func NewFromEndpoint(
 	processor endpoint.Endpoint,
+	decoder goduck.EndpointDecoder,
 	streams []goduck.Stream,
 ) *StreamEngine {
 	return New(
-		processormiddleware.WrapEndpointInProcessor(processor),
+		gokithelper.MustNewEndpointProcessor(processor, decoder),
 		streams,
 	)
 }

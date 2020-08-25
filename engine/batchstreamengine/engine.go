@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/arquivei/goduck"
-	"github.com/arquivei/goduck/middleware/processormiddleware"
+	"github.com/arquivei/goduck/gokithelper"
 
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/go-kit/kit/endpoint"
@@ -30,12 +30,13 @@ type BatchStreamEngine struct {
 // NewFromEndpoint creates a BatchProcessor from a go-kit endpoint
 func NewFromEndpoint(
 	processor endpoint.Endpoint,
+	decoder goduck.EndpointBatchDecoder,
 	maxBatchSize int,
 	maxBatchTimeout time.Duration,
 	streams []goduck.Stream,
 ) *BatchStreamEngine {
 	return New(
-		processormiddleware.WrapEndpointInProcessor(processor),
+		gokithelper.MustNewEndpointBatchProcessor(processor, decoder),
 		maxBatchSize,
 		maxBatchTimeout,
 		streams,
