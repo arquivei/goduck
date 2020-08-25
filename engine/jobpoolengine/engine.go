@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/arquivei/goduck"
-	"github.com/arquivei/goduck/middleware/processormiddleware"
+	"github.com/arquivei/goduck/gokithelper"
 	"github.com/go-kit/kit/endpoint"
 
 	"github.com/arquivei/foundationkit/errors"
@@ -24,10 +24,15 @@ type JobPoolEngine struct {
 }
 
 // NewFromEndpoint creates a JobPoolEngine from a go-kit endpoint
-func NewFromEndpoint(queue goduck.MessagePool, processor endpoint.Endpoint, nWorkers int) *JobPoolEngine {
+func NewFromEndpoint(
+	e endpoint.Endpoint,
+	decoder goduck.EndpointDecoder,
+	queue goduck.MessagePool,
+	nWorkers int,
+) *JobPoolEngine {
 	return New(
 		queue,
-		processormiddleware.WrapEndpointInProcessor(processor),
+		gokithelper.MustNewEndpointProcessor(e, decoder),
 		nWorkers,
 	)
 }

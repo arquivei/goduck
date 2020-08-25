@@ -82,3 +82,11 @@ type AnyProcessor interface {
 	Processor
 	BatchProcessor
 }
+
+// EndpointDecoder decodes a message into a endpoint request.
+// See go-kit's endpoint.Endpoint.
+type EndpointDecoder func(context.Context, []byte) (interface{}, error)
+
+// EndpointBatchDecoder decodes a message into a endpoint request.
+// See go-kit's endpoint.Endpoint.
+type EndpointBatchDecoder func(context.Context, [][]byte) (interface{}, error)
