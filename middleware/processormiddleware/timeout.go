@@ -17,7 +17,7 @@ func WrapWithTimeout(next goduck.Processor, timeout time.Duration) goduck.Proces
 	return timeoutMiddleware{next, timeout}
 }
 
-func (m timeoutMiddleware) Process(ctx context.Context, message []byte) error {
+func (m timeoutMiddleware) Process(ctx context.Context, message goduck.Message) error {
 	const op = errors.Op("timeoutMiddleware.Process")
 	ctx, cancelFn := context.WithTimeout(ctx, m.timeout)
 	defer cancelFn()

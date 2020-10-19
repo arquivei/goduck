@@ -74,8 +74,10 @@ func (c *goduckStream) Next(ctx context.Context) (goduck.RawMessage, error) {
 	if err != nil {
 		return nil, errors.E(op, err)
 	}
-
-	return rawMessage(msg.Value), nil
+	return rawMessage{
+		bytes:    msg.Value,
+		metadata: getMetadataFromMessage(msg),
+	}, nil
 }
 func (c *goduckStream) Done(ctx context.Context) error {
 	c.handler.Done()
@@ -89,4 +91,13 @@ func (c *goduckStream) Close() error {
 	// closes message channel, and Next() calls return io.EOF from now on
 	c.handler.Close()
 	return nil
+}
+
+func getMetadataFromMessage(msg *sarama.ConsumerMessage) map[string][]byte {
+	meta := map[string][]byte{}
+	for _, header := range msg.Headers {
+		meta[string(header.Key)] = header.Value
+	}
+	meta[goduck.KeyMetadata] = msg.Key
+	return meta
 }

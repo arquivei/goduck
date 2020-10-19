@@ -1,4 +1,4 @@
-package kafkasarama
+package implstream
 
 type rawMessage struct {
 	bytes    []byte
@@ -8,7 +8,6 @@ type rawMessage struct {
 func (r rawMessage) Bytes() []byte {
 	return r.bytes
 }
-
 func (r rawMessage) Metadata() map[string][]byte {
 	return r.metadata
 }

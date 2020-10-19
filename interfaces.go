@@ -7,7 +7,18 @@ import "context"
 // for marking the message as complete.
 type RawMessage interface {
 	Bytes() []byte
+	Metadata() map[string][]byte
 }
+
+// Message is the goduck abstraction of a message, from which consumers should
+// read.
+type Message struct {
+	Value    []byte
+	Metadata map[string][]byte
+}
+
+// KeyMetadata is a special metadata containing the message's key
+var KeyMetadata = "goduck_key"
 
 // MessagePool represents a pool of unordered messages, where each one can be
 // individually marked as complete.
@@ -55,7 +66,7 @@ type Processor interface {
 	// Therefore, the implementation should be idempotent.
 	//
 	// Depending on the engine, this method may be called concurrently.
-	Process(ctx context.Context, message []byte) error
+	Process(ctx context.Context, message Message) error
 }
 
 // BatchProcessor is a basic low level message processor, that is able to handle
@@ -73,7 +84,7 @@ type BatchProcessor interface {
 	// Therefore, the implementation should be idempotent.
 	//
 	// Depending on the engine, this method may be called concurrently.
-	BatchProcess(ctx context.Context, messages [][]byte) error
+	BatchProcess(ctx context.Context, messages []Message) error
 }
 
 // AnyProcessor refer to structs that can behave both as Processor and
@@ -85,8 +96,8 @@ type AnyProcessor interface {
 
 // EndpointDecoder decodes a message into a endpoint request.
 // See go-kit's endpoint.Endpoint.
-type EndpointDecoder func(context.Context, []byte) (interface{}, error)
+type EndpointDecoder func(context.Context, Message) (interface{}, error)
 
 // EndpointBatchDecoder decodes a message into a endpoint request.
 // See go-kit's endpoint.Endpoint.
-type EndpointBatchDecoder func(context.Context, [][]byte) (interface{}, error)
+type EndpointBatchDecoder func(context.Context, []Message) (interface{}, error)

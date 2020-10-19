@@ -1,9 +1,16 @@
 package kafkaconfluent
 
-type goduckMsg []byte
+type goduckMsg struct {
+	bytes    []byte
+	metadata map[string][]byte
+}
 
 func (msg goduckMsg) Bytes() []byte {
-	return msg
+	return msg.bytes
+}
+
+func (msg goduckMsg) Metadata() map[string][]byte {
+	return msg.metadata
 }
 
 type topicPartition struct {

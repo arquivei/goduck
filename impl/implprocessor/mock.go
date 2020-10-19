@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"sync"
+
+	"github.com/arquivei/goduck"
 )
 
 type MockProcessor struct {
@@ -22,10 +24,10 @@ func New(customFn func() error) *MockProcessor {
 	}
 }
 
-func (m *MockProcessor) Process(ctx context.Context, message []byte) error {
+func (m *MockProcessor) Process(ctx context.Context, message goduck.Message) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	strMessage := string(message)
+	strMessage := string(message.Value)
 	m.jobsProcessed++
 	if m.jobsProcessed%3 == 0 {
 		// Emulating intermitent failures
@@ -38,7 +40,7 @@ func (m *MockProcessor) Process(ctx context.Context, message []byte) error {
 	return nil
 }
 
-func (m *MockProcessor) BatchProcess(ctx context.Context, messages [][]byte) error {
+func (m *MockProcessor) BatchProcess(ctx context.Context, messages []goduck.Message) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -48,7 +50,7 @@ func (m *MockProcessor) BatchProcess(ctx context.Context, messages [][]byte) err
 		return errors.New("intermitent error")
 	}
 	for _, message := range messages {
-		strMessage := string(message)
+		strMessage := string(message.Value)
 		m.Success[strMessage] = true
 	}
 
