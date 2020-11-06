@@ -1,4 +1,4 @@
-package implqueue
+package mockqueue
 
 import (
 	"context"

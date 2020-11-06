@@ -1,4 +1,4 @@
-package implstream
+package mockstream
 
 import (
 	"context"

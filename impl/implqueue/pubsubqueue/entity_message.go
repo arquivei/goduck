@@ -1,4 +1,4 @@
-package implqueue
+package pubsubqueue
 
 import "cloud.google.com/go/pubsub"
 

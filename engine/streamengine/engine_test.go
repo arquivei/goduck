@@ -8,7 +8,7 @@ import (
 	"github.com/arquivei/goduck"
 	"github.com/arquivei/goduck/engine/streamengine"
 	"github.com/arquivei/goduck/impl/implprocessor"
-	"github.com/arquivei/goduck/impl/implstream"
+	"github.com/arquivei/goduck/impl/implstream/mockstream"
 
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func TestStream(t *testing.T) {
 	processor := implprocessor.New(nil)
 	streams := make([]goduck.Stream, nWorkers)
 	for i := 0; i < nWorkers; i++ {
-		streams[i] = implstream.NewDefaultStream(i, 100)
+		streams[i] = mockstream.NewDefaultStream(i, 100)
 	}
 	defer func() {
 		for _, stream := range streams {
@@ -43,7 +43,7 @@ func TestStreamCancel(t *testing.T) {
 	processor := implprocessor.New(nil)
 	streams := make([]goduck.Stream, nWorkers)
 	for i := 0; i < nWorkers; i++ {
-		streams[i] = implstream.NewDefaultStream(i, 100)
+		streams[i] = mockstream.NewDefaultStream(i, 100)
 	}
 	defer func() {
 		for _, stream := range streams {
@@ -83,7 +83,7 @@ func TestStreamFatal(t *testing.T) {
 	})
 	streams := make([]goduck.Stream, nWorkers)
 	for i := 0; i < nWorkers; i++ {
-		streams[i] = implstream.NewDefaultStream(i, 100)
+		streams[i] = mockstream.NewDefaultStream(i, 100)
 	}
 	defer func() {
 		for _, stream := range streams {

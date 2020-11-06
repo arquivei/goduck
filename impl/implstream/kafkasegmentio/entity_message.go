@@ -1,4 +1,4 @@
-package implstream
+package kafkasegmentio
 
 type rawMessage struct {
 	bytes    []byte

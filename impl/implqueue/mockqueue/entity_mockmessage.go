@@ -1,4 +1,4 @@
-package implstream
+package mockqueue
 
 type mockRawMessage struct {
 	data []byte

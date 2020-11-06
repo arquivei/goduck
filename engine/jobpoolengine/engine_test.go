@@ -7,7 +7,7 @@ import (
 
 	"github.com/arquivei/goduck/engine/jobpoolengine"
 	"github.com/arquivei/goduck/impl/implprocessor"
-	"github.com/arquivei/goduck/impl/implqueue"
+	"github.com/arquivei/goduck/impl/implqueue/mockqueue"
 
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ import (
 func TestJobPool(t *testing.T) {
 	nWorkers := 5
 	processor := implprocessor.New(nil)
-	queue := implqueue.NewDefaultQueue(100)
+	queue := mockqueue.NewDefaultQueue(100)
 	defer queue.Close()
 	w := jobpoolengine.New(queue, processor, nWorkers)
 	w.Run(context.Background())
@@ -34,7 +34,7 @@ func TestJobPoolCancel(t *testing.T) {
 		<-wait
 		return nil
 	})
-	queue := implqueue.NewDefaultQueue(100)
+	queue := mockqueue.NewDefaultQueue(100)
 	defer queue.Close()
 
 	ctx, cancelFn := context.WithCancel(context.Background())
@@ -66,7 +66,7 @@ func TestStreamFatal(t *testing.T) {
 		}
 		return nil
 	})
-	queue := implqueue.NewDefaultQueue(100)
+	queue := mockqueue.NewDefaultQueue(100)
 	defer queue.Close()
 
 	w := jobpoolengine.New(queue, processor, nWorkers)
