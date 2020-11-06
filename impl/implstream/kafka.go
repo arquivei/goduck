@@ -6,6 +6,7 @@ import (
 
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck"
+
 	"github.com/segmentio/kafka-go"
 	kafkaGo "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
@@ -66,7 +67,10 @@ func (c *kafkaConsumer) Next(ctx context.Context) (goduck.RawMessage, error) {
 		return nil, errors.E(op, err)
 	}
 	c.uncommitedMessages = append(c.uncommitedMessages, msg)
-	result := rawMessage(msg.Value)
+	result := rawMessage{
+		bytes:    msg.Value,
+		metadata: getMetadataFromMessage(msg),
+	}
 	return result, nil
 }
 func (c *kafkaConsumer) Done(ctx context.Context) error {
@@ -83,4 +87,13 @@ func (c *kafkaConsumer) Close() error {
 	const op = errors.Op("kafkaConsumer.Close")
 	err := c.reader.Close()
 	return errors.E(op, err)
+}
+
+func getMetadataFromMessage(msg kafka.Message) map[string][]byte {
+	meta := map[string][]byte{}
+	for _, header := range msg.Headers {
+		meta[header.Key] = header.Value
+	}
+	meta[goduck.KeyMetadata] = msg.Key
+	return meta
 }

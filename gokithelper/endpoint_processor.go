@@ -13,7 +13,7 @@ type processor struct {
 	d goduck.EndpointDecoder
 }
 
-func (p processor) decodeMessage(ctx context.Context, m []byte) (interface{}, error) {
+func (p processor) decodeMessage(ctx context.Context, m goduck.Message) (interface{}, error) {
 	const op = errors.Op("decodeMessage")
 
 	r, err := p.d(ctx, m)
@@ -36,7 +36,7 @@ func (p processor) doEndpoint(ctx context.Context, request interface{}) error {
 }
 
 // Process func will receive the pulled message from the engine.
-func (p processor) Process(ctx context.Context, message []byte) error {
+func (p processor) Process(ctx context.Context, message goduck.Message) error {
 	const op = errors.Op("foundationkit/goduckhelper/processor.Process")
 
 	r, err := p.decodeMessage(ctx, message)

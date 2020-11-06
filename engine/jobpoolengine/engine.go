@@ -90,12 +90,16 @@ func (e *JobPoolEngine) handleMessages(ctx context.Context) {
 	}
 }
 
-func (e *JobPoolEngine) handleMessage(ctx context.Context, msg goduck.RawMessage) {
-	err := e.processor.Process(ctx, msg.Bytes())
+func (e *JobPoolEngine) handleMessage(ctx context.Context, rawMessage goduck.RawMessage) {
+	msg := goduck.Message{
+		Value:    rawMessage.Bytes(),
+		Metadata: rawMessage.Metadata(),
+	}
+	err := e.processor.Process(ctx, msg)
 	if err == nil {
-		e.queue.Done(ctx, msg)
+		e.queue.Done(ctx, rawMessage)
 	} else {
-		e.queue.Failed(ctx, msg)
+		e.queue.Failed(ctx, rawMessage)
 		if errors.GetSeverity(err) == errors.SeverityFatal {
 			e.selfClose(err)
 		}

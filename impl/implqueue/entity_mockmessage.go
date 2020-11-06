@@ -1,10 +1,4 @@
-package implstream
-
-type rawMessage []byte
-
-func (r rawMessage) Bytes() []byte {
-	return r
-}
+package implqueue
 
 type mockRawMessage struct {
 	data []byte
@@ -13,4 +7,8 @@ type mockRawMessage struct {
 
 func (m mockRawMessage) Bytes() []byte {
 	return m.data
+}
+
+func (m mockRawMessage) Metadata() map[string][]byte {
+	return nil
 }

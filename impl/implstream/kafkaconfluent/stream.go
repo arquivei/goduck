@@ -9,8 +9,8 @@ import (
 
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck"
-	"github.com/rs/zerolog/log"
 
+	"github.com/rs/zerolog/log"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
 
 	// forces copying the librdkafka folder to vendor/
@@ -126,7 +126,10 @@ func (c *goduckStream) Next(ctx context.Context) (goduck.RawMessage, error) {
 
 	c.markUnackedMessage(msg)
 
-	return goduckMsg(msg.Value), nil
+	return goduckMsg{
+		bytes:    msg.Value,
+		metadata: getMetadataFromMessage(msg),
+	}, nil
 }
 
 func (c *goduckStream) backgroundPoll() {
@@ -217,4 +220,13 @@ func (c *goduckStream) Close() error {
 	c.waitGroup.Wait()
 	c.consumer.Close()
 	return nil
+}
+
+func getMetadataFromMessage(msg *kafka.Message) map[string][]byte {
+	meta := map[string][]byte{}
+	for _, header := range msg.Headers {
+		meta[string(header.Key)] = header.Value
+	}
+	meta[goduck.KeyMetadata] = msg.Key
+	return meta
 }

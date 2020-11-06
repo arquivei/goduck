@@ -13,7 +13,7 @@ type batchProcessor struct {
 	d goduck.EndpointBatchDecoder
 }
 
-func (p batchProcessor) decodeBatch(ctx context.Context, m [][]byte) (interface{}, error) {
+func (p batchProcessor) decodeBatch(ctx context.Context, m []goduck.Message) (interface{}, error) {
 	const op = errors.Op("decodeBatch")
 
 	r, err := p.d(ctx, m)
@@ -36,7 +36,7 @@ func (p batchProcessor) doEndpoint(ctx context.Context, request interface{}) err
 }
 
 // Process func will receive the pulled message from the engine.
-func (p batchProcessor) BatchProcess(ctx context.Context, messages [][]byte) error {
+func (p batchProcessor) BatchProcess(ctx context.Context, messages []goduck.Message) error {
 	const op = errors.Op("goduck/gokithelper/batchProcessor.BatchProcess")
 
 	r, err := p.decodeBatch(ctx, messages)

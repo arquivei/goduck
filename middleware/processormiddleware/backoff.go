@@ -62,13 +62,13 @@ func WrapBatchProcessorWithBackoffMiddleware(next goduck.BatchProcessor, config 
 	}
 }
 
-func (w batchProcessorBackoffMiddleware) BatchProcess(ctx context.Context, msg [][]byte) error {
+func (w batchProcessorBackoffMiddleware) BatchProcess(ctx context.Context, msg []goduck.Message) error {
 	return runWithBackoff(ctx, w.config, func(ctx context.Context) error {
 		return w.next.BatchProcess(ctx, msg)
 	})
 }
 
-func (w processorBackoffMiddleware) Process(ctx context.Context, msg []byte) error {
+func (w processorBackoffMiddleware) Process(ctx context.Context, msg goduck.Message) error {
 	return runWithBackoff(ctx, w.config, func(ctx context.Context) error {
 		return w.next.Process(ctx, msg)
 	})

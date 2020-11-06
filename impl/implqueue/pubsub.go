@@ -71,12 +71,16 @@ func (p *pubsubConsumer) Next(ctx context.Context) (goduck.RawMessage, error) {
 		if !ok {
 			return nil, io.EOF
 		}
-		rawMsg := &rawMessage{msg}
+		rawMsg := &rawMessage{
+			msg:      msg,
+			metadata: getMetadataFromMessage(msg),
+		}
 		return rawMsg, nil
 	case <-ctx.Done():
 		return nil, io.EOF
 	}
 }
+
 func (p pubsubConsumer) Done(ctx context.Context, msg goduck.RawMessage) error {
 	const op = errors.Op("pubsubConsumer.Done")
 	casted, ok := msg.(*rawMessage)
@@ -86,6 +90,7 @@ func (p pubsubConsumer) Done(ctx context.Context, msg goduck.RawMessage) error {
 	casted.msg.Ack()
 	return nil
 }
+
 func (p pubsubConsumer) Failed(ctx context.Context, msg goduck.RawMessage) error {
 	const op = errors.Op("pubsubConsumer.Failed")
 	casted, ok := msg.(*rawMessage)
@@ -95,6 +100,7 @@ func (p pubsubConsumer) Failed(ctx context.Context, msg goduck.RawMessage) error
 	casted.msg.Nack()
 	return nil
 }
+
 func (p *pubsubConsumer) Close() error {
 	p.closeOnce.Do(func() {
 		p.cancelFn()
@@ -102,4 +108,12 @@ func (p *pubsubConsumer) Close() error {
 		close(p.errChannel)
 	})
 	return nil
+}
+
+func getMetadataFromMessage(msg *pubsub.Message) map[string][]byte {
+	meta := map[string][]byte{}
+	for key, value := range msg.Attributes {
+		meta[key] = []byte(value)
+	}
+	return meta
 }

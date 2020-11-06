@@ -114,13 +114,16 @@ func (e *BatchStreamEngine) pollMessagesBatch(ctx context.Context, stream goduck
 	}
 	return msgs, nil
 }
-func (e *BatchStreamEngine) handleMessages(ctx context.Context, stream goduck.Stream, msgs []goduck.RawMessage) {
-	msgBytes := make([][]byte, len(msgs))
-	for i, msg := range msgs {
-		msgBytes[i] = msg.Bytes()
+func (e *BatchStreamEngine) handleMessages(ctx context.Context, stream goduck.Stream, rawMessages []goduck.RawMessage) {
+	messages := make([]goduck.Message, len(rawMessages))
+	for i, msg := range rawMessages {
+		messages[i] = goduck.Message{
+			Value:    msg.Bytes(),
+			Metadata: msg.Metadata(),
+		}
 	}
 	for {
-		err := e.batchProcessor.BatchProcess(context.Background(), msgBytes)
+		err := e.batchProcessor.BatchProcess(context.Background(), messages)
 		if err == nil {
 			break
 		}

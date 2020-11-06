@@ -16,7 +16,7 @@ func NewSimpleProcessor() goduck.Processor {
 	}
 }
 
-func (s *simpleProcessor) Process(ctx context.Context, message []byte) error {
-	s.consumed = append(s.consumed, string(message))
+func (s *simpleProcessor) Process(ctx context.Context, message goduck.Message) error {
+	s.consumed = append(s.consumed, string(message.Value))
 	return nil
 }
