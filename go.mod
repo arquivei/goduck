@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.2.0
 	github.com/Shopify/sarama v1.26.1
 	github.com/arquivei/foundationkit v0.0.0-20200302211010-306c93c13d0d
-	github.com/confluentinc/confluent-kafka-go v1.4.2 // indirect
+	github.com/confluentinc/confluent-kafka-go v1.5.2 // indirect
 	github.com/go-kit/kit v0.10.0
 	github.com/imkira/go-observer v1.0.3
 	github.com/rs/zerolog v1.14.3
