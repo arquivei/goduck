@@ -34,6 +34,10 @@ type Config struct {
 	// PoolTimeout is the value passed to the internal consumer.Pool(...)
 	// function. Default: 1s
 	PoolTimeout time.Duration
+
+	// DisableCommit indicates that offsets should never be commited, even
+	// after calling Done()
+	DisableCommit bool
 }
 
 type goduckStream struct {
@@ -47,7 +51,8 @@ type goduckStream struct {
 	done      chan struct{}
 	waitGroup *sync.WaitGroup
 
-	timeout time.Duration
+	timeout       time.Duration
+	disableCommit bool
 }
 
 // MustNew creates a confluent-kafka-go goduck.Stream with default configs
@@ -105,6 +110,7 @@ func mustCreateStream(config Config) goduck.Stream {
 		done:                done,
 		waitGroup:           &sync.WaitGroup{},
 		timeout:             config.PoolTimeout,
+		disableCommit:       config.DisableCommit,
 	}
 
 	stream.waitGroup.Add(1)
@@ -177,6 +183,9 @@ func (c *goduckStream) pollNextMessage() (*kafka.Message, error) {
 }
 
 func (c *goduckStream) markUnackedMessage(msg *kafka.Message) {
+	if c.disableCommit {
+		return
+	}
 	c.unackedMessagesLock.Lock()
 	defer c.unackedMessagesLock.Unlock()
 	tp := topicPartition{msg.TopicPartition.Topic, msg.TopicPartition.Partition}
@@ -185,6 +194,10 @@ func (c *goduckStream) markUnackedMessage(msg *kafka.Message) {
 
 func (c *goduckStream) Done(ctx context.Context) error {
 	const op = errors.Op("kafkaconfluent.goduckStream.Done")
+
+	if c.disableCommit {
+		return nil
+	}
 
 	c.unackedMessagesLock.Lock()
 	defer c.unackedMessagesLock.Unlock()
