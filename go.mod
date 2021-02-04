@@ -3,7 +3,7 @@ module github.com/arquivei/goduck
 go 1.14
 
 require (
-	cloud.google.com/go/pubsub v1.2.0
+	cloud.google.com/go/pubsub v1.9.1
 	github.com/Shopify/sarama v1.26.1
 	github.com/arquivei/foundationkit v0.0.0-20200302211010-306c93c13d0d
 	github.com/confluentinc/confluent-kafka-go v1.5.2 // indirect
