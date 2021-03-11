@@ -12,9 +12,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
-
-	// forces copying the librdkafka folder to vendor/
-	_ "gopkg.in/confluentinc/confluent-kafka-go.v1/kafka/librdkafka"
 )
 
 // Config contains the configuration necessary to build the
