@@ -11,7 +11,7 @@ import (
 	"github.com/arquivei/goduck"
 	"github.com/rs/zerolog/log"
 
-	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 // Config contains the configuration necessary to build the

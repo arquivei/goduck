@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/arquivei/foundationkit/errors"
-	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 // requestController implements a job pool model, where the worker is either
