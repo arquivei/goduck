@@ -1,4 +1,4 @@
-package implstream
+package kafkasegmentio
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck"
 	"github.com/segmentio/kafka-go"
-	kafkaGo "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
 )
 
@@ -25,13 +24,13 @@ type KafkaConfigs struct {
 }
 
 type kafkaConsumer struct {
-	reader             *kafkaGo.Reader
-	uncommitedMessages []kafkaGo.Message
+	reader             *kafka.Reader
+	uncommitedMessages []kafka.Message
 }
 
 func NewKafkaStream(config KafkaConfigs) goduck.Stream {
-	reader := kafkaGo.NewReader(
-		kafkaGo.ReaderConfig{
+	reader := kafka.NewReader(
+		kafka.ReaderConfig{
 			GroupID:        config.GroupID,
 			Brokers:        config.Brokers,
 			Topic:          config.Topic,
@@ -52,8 +51,8 @@ func NewKafkaStream(config KafkaConfigs) goduck.Stream {
 
 // NewKafkaStreamWithCustomConfigs allows creating a kafka connection with all
 // configs from the SegmentIO library
-func NewKafkaStreamWithCustomConfigs(config kafkaGo.ReaderConfig) goduck.Stream {
-	reader := kafkaGo.NewReader(config)
+func NewKafkaStreamWithCustomConfigs(config kafka.ReaderConfig) goduck.Stream {
+	reader := kafka.NewReader(config)
 	return &kafkaConsumer{
 		reader: reader,
 	}

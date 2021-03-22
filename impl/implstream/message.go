@@ -1,11 +1,5 @@
 package implstream
 
-type rawMessage []byte
-
-func (r rawMessage) Bytes() []byte {
-	return r
-}
-
 type mockRawMessage struct {
 	data []byte
 	idx  int
