@@ -76,7 +76,7 @@ func (s poolLogging) Failed(ctx context.Context, msg goduck.RawMessage) (err err
 		} else {
 			log.Debug().
 				Dur("took", took).
-				Msg("Successfully acked messages")
+				Msg("Successfully nacked messages")
 		}
 	}(time.Now())
 	return s.next.Failed(ctx, msg)
