@@ -16,13 +16,13 @@ import (
 
 var (
 	//ErrEmptyBroker is returned when the the broker is missing from the Config struct
-	ErrEmptyBroker = errors.New("invalid config: empty broker")
+	ErrEmptyBroker = errors.New("bad config: empty broker")
 	//ErrEmptyTopic is returned when the the Topic is missing from the Config struct
-	ErrEmptyTopic = errors.New("invalid config: empty topic")
+	ErrEmptyTopic = errors.New("bad config: empty topic")
 	//ErrEmptyUsername is returned when the the Username is missing from the Config struct
-	ErrEmptyUsername = errors.New("invalid config: empty username")
+	ErrEmptyUsername = errors.New("bad config: empty username")
 	//ErrEmptyPassword is returned when the the Password is missing from the Config struct
-	ErrEmptyPassword = errors.New("invalid config: empty password")
+	ErrEmptyPassword = errors.New("bad config: empty password")
 )
 
 // Config contains the configuration necessary to build the
