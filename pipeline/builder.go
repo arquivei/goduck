@@ -7,6 +7,7 @@ import (
 
 	"github.com/arquivei/foundationkit/app"
 	"github.com/arquivei/foundationkit/errors"
+	"github.com/arquivei/foundationkit/gokitmiddlewares"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/backoffmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/loggingmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/stalemiddleware"
@@ -99,13 +100,17 @@ func setupProcessor(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
 }
 
 func getMiddlewares(config Config) []endpoint.Middleware {
-	timeout := time.Duration(config.InputStream.ProcessingTimeoutMilli) * time.Millisecond
+	timeoutConfig := timeoutmiddleware.Config{
+		Timeout:       time.Duration(config.InputStream.ProcessingTimeoutMilli) * time.Millisecond,
+		Wait:          true,
+		ErrorSeverity: errors.SeverityFatal,
+	}
 	retryConfig := backoffmiddleware.NewDefaultConfig()
 	loggingConfig := loggingmiddleware.NewDefaultConfig(config.SystemName)
 
 	e := []endpoint.Middleware{
 		trackingmiddleware.New(),
-		timeoutmiddleware.New(timeout),
+		gokitmiddlewares.Must(timeoutmiddleware.New(timeoutConfig)),
 		backoffmiddleware.New(retryConfig),
 		loggingmiddleware.MustNew(loggingConfig),
 	}
