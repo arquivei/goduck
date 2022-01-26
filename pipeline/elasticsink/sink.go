@@ -11,10 +11,20 @@ import (
 )
 
 // SinkMessage is the input for the Elastic Sink
-type SinkMessage struct {
-	Document interface{}
+// Deprecated: this is an alias to IndexMessage, use that instead.
+type SinkMessage = IndexMessage
+
+// IndexMessage saves the document into elasticsearch
+type IndexMessage struct {
 	ID       string
 	Index    string
+	Document interface{}
+}
+
+// DeleteMessage deletes the document from the elasticsearch
+type DeleteMessage struct {
+	ID    string
+	Index string
 }
 
 type elasticSink struct {
@@ -42,26 +52,22 @@ func (e *elasticSink) Store(ctx context.Context, input ...pipeline.SinkMessage) 
 
 	bulkRequest := e.client.Bulk()
 	for _, message := range input {
-		sinkMessage, ok := message.(SinkMessage)
-		if !ok {
+		switch sinkMessage := message.(type) {
+		case IndexMessage:
+			item, err := newIndexBulkItem(sinkMessage)
+			if err != nil {
+				return errors.E(op, err)
+			}
+			bulkRequest.Add(item)
+		case DeleteMessage:
+			item, err := newDeleteBulkItem(sinkMessage)
+			if err != nil {
+				return errors.E(op, err)
+			}
+			bulkRequest.Add(item)
+		default:
 			return errors.E(op, "message should have type elasticsink.SinkMessage", errors.SeverityInput)
 		}
-
-		if sinkMessage.ID == "" {
-			return errors.E(op, "mandatory ID", errors.SeverityInput)
-		}
-		if sinkMessage.Index == "" {
-			return errors.E(op, "mandatory Index", errors.SeverityInput)
-		}
-		if sinkMessage.Document == nil {
-			return errors.E(op, "mandatory Document", errors.SeverityInput)
-		}
-		item := elastic.
-			NewBulkIndexRequest().
-			Index(sinkMessage.Index).
-			Id(sinkMessage.ID).
-			Doc(sinkMessage.Document)
-		bulkRequest.Add(item)
 	}
 
 	response, err := bulkRequest.Do(ctx)
@@ -73,6 +79,41 @@ func (e *elasticSink) Store(ctx context.Context, input ...pipeline.SinkMessage) 
 		return errors.E(op, "some items failed to index", errors.SeverityRuntime)
 	}
 	return nil
+}
+
+func newIndexBulkItem(sinkMessage IndexMessage) (elastic.BulkableRequest, error) {
+	const op errors.Op = "newIndexBulkItem"
+
+	if sinkMessage.ID == "" {
+		return nil, errors.E(op, "mandatory ID", errors.SeverityInput)
+	}
+	if sinkMessage.Index == "" {
+		return nil, errors.E(op, "mandatory Index", errors.SeverityInput)
+	}
+	if sinkMessage.Document == nil {
+		return nil, errors.E(op, "mandatory Document", errors.SeverityInput)
+	}
+
+	return elastic.
+		NewBulkIndexRequest().
+		Index(sinkMessage.Index).
+		Id(sinkMessage.ID).
+		Doc(sinkMessage.Document), nil
+}
+
+func newDeleteBulkItem(sinkMessage DeleteMessage) (elastic.BulkableRequest, error) {
+	const op errors.Op = "newDeleteBulkItem"
+
+	if sinkMessage.ID == "" {
+		return nil, errors.E(op, "mandatory ID", errors.SeverityInput)
+	}
+	if sinkMessage.Index == "" {
+		return nil, errors.E(op, "mandatory Index", errors.SeverityInput)
+	}
+
+	return elastic.NewBulkDeleteRequest().
+		Index(sinkMessage.Index).
+		Id(sinkMessage.ID), nil
 }
 
 func logInsertFailed(ctx context.Context, response *elastic.BulkResponse) {
