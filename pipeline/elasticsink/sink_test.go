@@ -45,7 +45,7 @@ func TestAddBulk(t *testing.T) {
 				return server
 			}(),
 			input: []pipeline.SinkMessage{
-				SinkMessage{
+				IndexMessage{
 					ID:    "ID1",
 					Index: "index1",
 					Document: map[string]interface{}{
@@ -53,7 +53,7 @@ func TestAddBulk(t *testing.T) {
 						"b": 3,
 					},
 				},
-				SinkMessage{
+				IndexMessage{
 					ID:    "ID2",
 					Index: "index1",
 					Document: map[string]interface{}{
@@ -61,7 +61,7 @@ func TestAddBulk(t *testing.T) {
 						"b": 4,
 					},
 				},
-				SinkMessage{
+				IndexMessage{
 					ID:    "ID3",
 					Index: "index2",
 					Document: map[string]interface{}{
@@ -73,13 +73,47 @@ func TestAddBulk(t *testing.T) {
 			expectedError: "",
 		},
 		{
+			name: "Success - Delete",
+			httpHandler: func() *mockServer {
+				server := new(mockServer)
+				server.On(
+					"ServeHTTP",
+					"/_bulk",
+					`{"delete":{"_id":"ID1","_index":"index1"}}
+{"delete":{"_id":"ID2","_index":"index1"}}
+{"delete":{"_id":"ID3","_index":"index2"}}`,
+				).Once().Return(
+					`{"took":80,"errors":false,"items":[{"index":{"_index":"index1","_type":"_doc","_id":"ID1","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":0,"_primary_term":1,"status":201}},{"index":{"_index":"index1","_type":"_doc","_id":"ID2","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":1,"_primary_term":1,"status":201}},{"index":{"_index":"index2","_type":"_doc","_id":"ID3","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":0,"_primary_term":1,"status":201}}]}`,
+					201,
+				)
+
+				return server
+			}(),
+			input: []pipeline.SinkMessage{
+				DeleteMessage{
+					ID:    "ID1",
+					Index: "index1",
+				},
+				DeleteMessage{
+					ID:    "ID2",
+					Index: "index1",
+				},
+				DeleteMessage{
+					ID:    "ID3",
+					Index: "index2",
+				},
+			},
+			expectedError: "",
+		},
+
+		{
 			name: "Error - No ID",
 			httpHandler: func() *mockServer {
 				server := new(mockServer)
 				return server
 			}(),
 			input: []pipeline.SinkMessage{
-				SinkMessage{
+				IndexMessage{
 					Index: "Index",
 					Document: map[string]interface{}{
 						"a": 2,
@@ -96,7 +130,7 @@ func TestAddBulk(t *testing.T) {
 				return server
 			}(),
 			input: []pipeline.SinkMessage{
-				SinkMessage{
+				IndexMessage{
 					ID: "ID1",
 					Document: map[string]interface{}{
 						"a": 2,
@@ -123,7 +157,7 @@ func TestAddBulk(t *testing.T) {
 				return server
 			}(),
 			input: []pipeline.SinkMessage{
-				SinkMessage{
+				IndexMessage{
 					ID:    "ID1",
 					Index: "index1",
 					Document: map[string]interface{}{
