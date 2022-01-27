@@ -7,11 +7,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck"
-	"github.com/rs/zerolog/log"
 
+	"github.com/arquivei/foundationkit/errors"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/rs/zerolog/log"
+)
+
+var (
+	//ErrEmptyBroker is returned when the the broker is missing from the Config struct
+	ErrEmptyBroker = errors.New("bad config: empty broker")
+	//ErrEmptyTopic is returned when the the Topic is missing from the Config struct
+	ErrEmptyTopic = errors.New("bad config: empty topic")
+	//ErrEmptyUsername is returned when the the Username is missing from the Config struct
+	ErrEmptyUsername = errors.New("bad config: empty username")
+	//ErrEmptyPassword is returned when the the Password is missing from the Config struct
+	ErrEmptyPassword = errors.New("bad config: empty password")
 )
 
 // Config contains the configuration necessary to build the
@@ -52,19 +63,23 @@ type goduckStream struct {
 	disableCommit bool
 }
 
-// MustNew creates a confluent-kafka-go goduck.Stream with default configs
-func MustNew(config Config) goduck.Stream {
+// New creates a confluent-kafka-go goduck.Stream with default configs
+func New(config Config) (goduck.Stream, error) {
+	if len(config.Topics) == 0 {
+		return nil, ErrEmptyTopic
+	}
+
 	if config.RDKafkaConfig == nil {
-		if config.Brokers == nil || len(config.Brokers) == 0 {
-			panic("Empty broker")
+		if len(config.Brokers) == 0 {
+			return nil, ErrEmptyBroker
 		}
 
 		if config.Username == "" {
-			panic("Empty username")
+			return nil, ErrEmptyUsername
 		}
 
 		if config.Password == "" {
-			panic("Empty password")
+			return nil, ErrEmptyPassword
 		}
 
 		config.RDKafkaConfig = &kafka.ConfigMap{
@@ -79,24 +94,30 @@ func MustNew(config Config) goduck.Stream {
 		}
 	}
 
-	if config.Topics == nil || len(config.Topics) == 0 {
-		panic("Empty broker")
-	}
 	if config.PoolTimeout == 0 {
 		config.PoolTimeout = time.Second
 	}
-	return mustCreateStream(config)
+	return createStream(config)
 }
 
-func mustCreateStream(config Config) goduck.Stream {
-	c, err := kafka.NewConsumer(config.RDKafkaConfig)
+// MustNew creates a confluent-kafkam with default configs
+func MustNew(config Config) goduck.Stream {
+	s, err := New(config)
 	if err != nil {
 		panic(err)
+	}
+	return s
+}
+
+func createStream(config Config) (goduck.Stream, error) {
+	c, err := kafka.NewConsumer(config.RDKafkaConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	err = c.SubscribeTopics(config.Topics, nil)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	done := make(chan struct{})
 	stream := &goduckStream{
@@ -113,7 +134,7 @@ func mustCreateStream(config Config) goduck.Stream {
 	stream.waitGroup.Add(1)
 	go stream.backgroundPoll()
 
-	return stream
+	return stream, nil
 }
 
 func (c *goduckStream) Next(ctx context.Context) (goduck.RawMessage, error) {
