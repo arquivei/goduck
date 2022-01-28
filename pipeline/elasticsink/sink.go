@@ -7,7 +7,11 @@ import (
 
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/olivere/elastic/v7"
-	"github.com/rs/zerolog/log"
+)
+
+const (
+	actionDelete                    = "delete"
+	errorTypeIndexNotFoundException = "index_not_found_exception"
 )
 
 // SinkMessage is the input for the Elastic Sink
@@ -29,18 +33,29 @@ type DeleteMessage struct {
 
 type elasticSink struct {
 	client *elastic.Client
+
+	deleteOptions struct {
+		IgnoreIndexNotFoundError bool
+	}
 }
 
 // MustNew creates a new sink that saves documents to elastic
 func MustNew(
 	client *elastic.Client,
+	options ...Option,
 ) pipeline.Sink {
 	if client == nil {
 		panic("elasticsearch client is nil")
 	}
-	return &elasticSink{
+
+	es := &elasticSink{
 		client: client,
 	}
+
+	for _, opt := range options {
+		opt(es)
+	}
+	return es
 }
 
 func (e *elasticSink) Store(ctx context.Context, input ...pipeline.SinkMessage) error {
@@ -74,11 +89,51 @@ func (e *elasticSink) Store(ctx context.Context, input ...pipeline.SinkMessage) 
 	if err != nil {
 		return errors.E(op, err, errors.SeverityRuntime)
 	}
+
 	if response.Errors {
-		logInsertFailed(ctx, response)
-		return errors.E(op, "some items failed to index", errors.SeverityRuntime)
+		// One or more errors happened, but because we could
+		// be ignoring some of them we must check the errors.
+		// Let's extract the errors that are not ignored and
+		// return a new error with only those errors. If no
+		// error is returned here, than just return sucess.
+		errs := e.extractErrorsFromBulkItems(ctx, response)
+		if len(errs) > 0 {
+			return errors.E(op, "some items failed to be stored", errors.SeverityRuntime, errors.KV("errors", errs))
+		}
 	}
 	return nil
+}
+
+func (e *elasticSink) shouldIgnoreError(action string, result *elastic.BulkResponseItem) bool {
+	return action == actionDelete &&
+		e.deleteOptions.IgnoreIndexNotFoundError &&
+		result.Error != nil &&
+		result.Error.Type == errorTypeIndexNotFoundException
+}
+
+func (e *elasticSink) extractErrorsFromBulkItems(ctx context.Context, response *elastic.BulkResponse) []string {
+	errs := []string{}
+	for _, item := range response.Items {
+		for action, result := range item {
+			if bulkItemSucceeded(result) {
+				continue
+			}
+			if e.shouldIgnoreError(action, result) {
+				continue
+			}
+
+			reason := "error message not available"
+			if result.Error != nil {
+				reason = result.Error.Type + ": " + result.Error.Reason
+			}
+			errs = append(errs, action+" "+result.Index+"/"+result.Id+":"+reason)
+		}
+	}
+	return errs
+}
+
+func bulkItemSucceeded(result *elastic.BulkResponseItem) bool {
+	return result.Status >= 200 && result.Status <= 299
 }
 
 func newIndexBulkItem(sinkMessage IndexMessage) (elastic.BulkableRequest, error) {
@@ -114,21 +169,4 @@ func newDeleteBulkItem(sinkMessage DeleteMessage) (elastic.BulkableRequest, erro
 	return elastic.NewBulkDeleteRequest().
 		Index(sinkMessage.Index).
 		Id(sinkMessage.ID), nil
-}
-
-func logInsertFailed(ctx context.Context, response *elastic.BulkResponse) {
-	logger := log.Ctx(ctx)
-	for _, item := range response.Failed() {
-		logEvent := logger.Error().
-			Str("elastic_index", item.Index).
-			Str("elastic_id", item.Id)
-
-		if item.Error != nil {
-			logEvent = logEvent.
-				Str("error_type", item.Error.Type).
-				Str("error_message", item.Error.Reason)
-		}
-
-		logEvent.Msg("Failed to index elastic document")
-	}
 }
