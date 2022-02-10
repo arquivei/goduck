@@ -165,7 +165,7 @@ func TestAddBulk(t *testing.T) {
 					},
 				},
 			},
-			expectedError: "some items failed to index",
+			expectedError: "some items failed to be stored",
 		},
 	}
 	for _, test := range tests {
