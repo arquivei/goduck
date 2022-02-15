@@ -13,7 +13,7 @@ func TestMakeStream(t *testing.T) {
 
 		s, err := k.MakeStream()
 		assert.Nil(t, s)
-		assert.EqualError(t, err, "panic: Empty broker")
+		assert.EqualError(t, err, "panic: bad config: empty topic")
 
 	})
 
