@@ -15,8 +15,8 @@ require (
 	github.com/olivere/elastic/v7 v7.0.31
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/rs/zerolog v1.26.1
-	github.com/segmentio/kafka-go v0.4.28
-	github.com/stretchr/testify v1.7.0
+	github.com/segmentio/kafka-go v0.4.32
+	github.com/stretchr/testify v1.7.1
 	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2 // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	google.golang.org/api v0.68.0 // indirect
