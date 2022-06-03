@@ -28,8 +28,8 @@ func (m *MockProcessor) Process(ctx context.Context, message []byte) error {
 	strMessage := string(message)
 	m.jobsProcessed++
 	if m.jobsProcessed%3 == 0 {
-		// Emulating intermitent failures
-		return errors.New("intermitent error")
+		// Emulating intermittent failures
+		return errors.New("intermittent error")
 	}
 	m.Success[strMessage] = true
 	if m.CustomFn != nil {
@@ -44,8 +44,8 @@ func (m *MockProcessor) BatchProcess(ctx context.Context, messages [][]byte) err
 
 	m.jobsProcessed++
 	if m.jobsProcessed%3 == 0 {
-		// Emulating intermitent failures
-		return errors.New("intermitent error")
+		// Emulating intermittent failures
+		return errors.New("intermittent error")
 	}
 	for _, message := range messages {
 		strMessage := string(message)

@@ -19,7 +19,8 @@ func TestJobPool(t *testing.T) {
 	queue := implqueue.NewDefaultQueue(100)
 	defer queue.Close()
 	w := jobpoolengine.New(queue, processor, nWorkers)
-	w.Run(context.Background())
+	err := w.Run(context.Background())
+	assert.NoError(t, err)
 
 	assert.Equal(t, 100, len(processor.Success))
 
@@ -40,7 +41,8 @@ func TestJobPoolCancel(t *testing.T) {
 	ctx, cancelFn := context.WithCancel(context.Background())
 	w := jobpoolengine.New(queue, processor, nWorkers)
 	go func() {
-		w.Run(ctx)
+		err := w.Run(ctx)
+		assert.NoError(t, err)
 		close(done)
 	}()
 	cancelFn()

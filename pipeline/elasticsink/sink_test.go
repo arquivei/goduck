@@ -221,5 +221,8 @@ func (s *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	result := args.String(0)
 	httpCode := args.Int(1)
 	w.WriteHeader(httpCode)
-	w.Write([]byte(result))
+	_, err := w.Write([]byte(result))
+	if err != nil {
+		panic(err)
+	}
 }

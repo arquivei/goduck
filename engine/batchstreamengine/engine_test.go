@@ -29,7 +29,8 @@ func TestStream(t *testing.T) {
 	}()
 
 	w := batchstreamengine.New(processor, 11, 100*time.Millisecond, streams)
-	w.Run(context.Background())
+	err := w.Run(context.Background())
+	assert.NoError(t, err)
 
 	assert.Equal(t, 500, len(processor.Success))
 
@@ -49,7 +50,8 @@ func TestStreamNoTimeout(t *testing.T) {
 	}()
 
 	w := batchstreamengine.New(processor, 15, 0, streams)
-	w.Run(context.Background())
+	err := w.Run(context.Background())
+	assert.NoError(t, err)
 
 	assert.Equal(t, 500, len(processor.Success))
 
