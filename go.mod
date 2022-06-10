@@ -13,7 +13,7 @@ require (
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/rs/zerolog v1.26.1
 	github.com/segmentio/kafka-go v0.4.28
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.2
 )
 
 require (
@@ -73,5 +73,5 @@ require (
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
