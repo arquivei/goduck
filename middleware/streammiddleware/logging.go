@@ -41,11 +41,10 @@ func (s streamLogging) Next(ctx context.Context) (response goduck.RawMessage, er
 				Int("size", len(response.Bytes())).
 				Msg("Successfully fetched next message")
 		}
-
 	}(time.Now())
 	return s.next.Next(ctx)
-
 }
+
 func (s streamLogging) Done(ctx context.Context) (err error) {
 	const op = errors.Op("streammiddleware.streamLogging.Done")
 	defer func(begin time.Time) {

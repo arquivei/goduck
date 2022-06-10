@@ -5,7 +5,7 @@ import "errors"
 var (
 	// ErrUnkownMessageType is returned when the sink message
 	// received is not of the type Message.
-	ErrUnkownMessageType = errors.New("unkown message type")
+	ErrUnkownMessageType = errors.New("unknown message type")
 
 	// ErrEmptyProjectID is returned when the Message.ProjectID is empty.
 	ErrEmptyProjectID = errors.New("project id is missing from the message")

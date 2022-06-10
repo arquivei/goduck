@@ -63,7 +63,7 @@ func (s *bigquerySink) Store(ctx context.Context, sinkmessages ...pipeline.SinkM
 		message, ok := sinkmessage.(Message)
 		if !ok {
 			if s.shouldIgnoreUnkownMessages {
-				logger.Warn().Msg("[bigquerySink] Ignoring unkown message type.")
+				logger.Warn().Msg("[bigquerySink] Ignoring unknown message type.")
 				continue
 			}
 			return errors.E(op, ErrUnkownMessageType)
@@ -105,14 +105,6 @@ func (s *bigquerySink) Store(ctx context.Context, sinkmessages ...pipeline.SinkM
 	logger.Trace().Msg("[bigquerySink] All messages processed.")
 
 	return nil
-}
-
-func (s *bigquerySink) logger(ctx context.Context) zerolog.Logger {
-	if s.logLevel == zerolog.Disabled {
-		return zerolog.Nop()
-	}
-
-	return log.Ctx(ctx).Level(s.logLevel)
 }
 
 func (s *bigquerySink) getTable(m Message) *bigquery.Table {

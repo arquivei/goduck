@@ -95,8 +95,8 @@ func (e *elasticSink) Store(ctx context.Context, input ...pipeline.SinkMessage) 
 		// be ignoring some of them we must check the errors.
 		// Let's extract the errors that are not ignored and
 		// return a new error with only those errors. If no
-		// error is returned here, than just return sucess.
-		errs := e.extractErrorsFromBulkItems(ctx, response)
+		// error is returned here, than just return success.
+		errs := e.extractErrorsFromBulkItems(response)
 		if len(errs) > 0 {
 			return errors.E(op, "some items failed to be stored", errors.SeverityRuntime, errors.KV("errors", errs))
 		}
@@ -111,7 +111,7 @@ func (e *elasticSink) shouldIgnoreError(action string, result *elastic.BulkRespo
 		result.Error.Type == errorTypeIndexNotFoundException
 }
 
-func (e *elasticSink) extractErrorsFromBulkItems(ctx context.Context, response *elastic.BulkResponse) []string {
+func (e *elasticSink) extractErrorsFromBulkItems(response *elastic.BulkResponse) []string {
 	errs := []string{}
 	for _, item := range response.Items {
 		for action, result := range item {

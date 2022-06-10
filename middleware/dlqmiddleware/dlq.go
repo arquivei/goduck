@@ -154,19 +154,20 @@ func (m dlqMiddleware) sendMessage(ctx context.Context, messages ...[]byte) (err
 
 	go func() {
 		for e := range deliveryChan {
-			switch ev := e.(type) {
-			case *kafka.Message:
-				if ev.TopicPartition.Error != nil {
-					log.Ctx(ctx).Debug().
-						Err(ev.TopicPartition.Error).
-						Str("kafka_topic", ev.TopicPartition.String()).
-						Msg("Failed to send message to kafka")
-					setErr(err)
-				} else {
-					log.Ctx(ctx).Debug().
-						Str("kafka_topic", ev.TopicPartition.String()).
-						Msg("Message sent to DLQ")
-				}
+			event, ok := e.(*kafka.Message)
+			if !ok {
+				continue
+			}
+			if event.TopicPartition.Error != nil {
+				log.Ctx(ctx).Debug().
+					Err(event.TopicPartition.Error).
+					Str("kafka_topic", event.TopicPartition.String()).
+					Msg("Failed to send message to kafka")
+				setErr(err)
+			} else {
+				log.Ctx(ctx).Debug().
+					Str("kafka_topic", event.TopicPartition.String()).
+					Msg("Message sent to DLQ")
 			}
 			wg.Done()
 		}
