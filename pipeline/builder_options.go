@@ -19,6 +19,12 @@ type pipelineBuilderOptions struct {
 	// inputStreams are the message sources
 	inputStreams []goduck.Stream
 
+	// messagePool, if set, makes the pipeline uses a job pool engine to fetch the messages.
+	messagePool goduck.MessagePool
+
+	// nPoolWorkers is the number of workers consuming from the job pool.
+	nPoolWorkers int
+
 	// Decoders converts the messages from the input stream to an endpoint request.
 	// Only one of the following decoders is allowed. This affects with kind of engine will be used.
 	//
@@ -57,8 +63,13 @@ func checkPipelineBuilderOptions(c pipelineBuilderOptions) error {
 	if c.endpoint == nil {
 		return errors.E(op, ErrEndpointNil)
 	}
-	if len(c.inputStreams) == 0 {
-		return errors.E(op, ErrInputStreamNil)
+
+	if c.messagePool == nil && len(c.inputStreams) == 0 {
+		return errors.E(op, ErrEmptyInputStreamOrMessagePool)
+	}
+
+	if c.messagePool != nil && len(c.inputStreams) > 1 {
+		return errors.E(op, ErrBothInputSet)
 	}
 
 	if c.decoder == nil && c.batchDecoder == nil {
@@ -82,7 +93,7 @@ func checkPipelineBuilderOptions(c pipelineBuilderOptions) error {
 	}
 
 	if c.dlq.brokers == nil {
-		log.Warn().Msg("No DLQ Topic is set, all messages be retried forever")
+		log.Warn().Msg("No DLQ Topic is set, all messages will be retried forever.")
 	}
 	return nil
 }

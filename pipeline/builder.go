@@ -14,6 +14,7 @@ import (
 	"github.com/arquivei/foundationkit/gokitmiddlewares/timeoutmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/trackingmiddleware"
 	"github.com/arquivei/goduck/engine/batchstreamengine"
+	"github.com/arquivei/goduck/engine/jobpoolengine"
 	"github.com/arquivei/goduck/engine/streamengine"
 	"github.com/arquivei/goduck/gokithelper"
 	"github.com/go-kit/kit/endpoint"
@@ -37,11 +38,18 @@ func build(c pipelineBuilderOptions) (Pipeline, error) {
 	}
 
 	switch {
-	case c.batchDecoder != nil:
-		setupBatchProcessor(c, p)
-	case c.decoder != nil:
-		setupProcessor(c, p)
+	case c.messagePool != nil:
+		err = setupMessagePool(c, p)
+	case len(c.inputStreams) > 0:
+		err = setupStreamProcessor(c, p)
+	default:
+		err = errors.E(op, "invalid pipeline configuration")
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	return p, nil
 }
 
@@ -73,6 +81,13 @@ func setupBatchProcessor(internalConfig pipelineBuilderOptions, pipe *pipeline) 
 	return nil
 }
 
+func setupStreamProcessor(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
+	if builderOpts.batchDecoder != nil {
+		return setupBatchProcessor(builderOpts, pipe)
+	}
+	return setupProcessor(builderOpts, pipe)
+}
+
 func setupProcessor(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
 	processor, err := gokithelper.NewEndpointProcessor(
 		builderOpts.endpoint,
@@ -95,6 +110,23 @@ func setupProcessor(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
 	pipe.engine = streamengine.New(
 		processor,
 		builderOpts.inputStreams,
+	)
+	return nil
+}
+
+func setupMessagePool(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
+	processor, err := gokithelper.NewEndpointProcessor(
+		builderOpts.endpoint,
+		builderOpts.decoder,
+	)
+	if err != nil {
+		return err
+	}
+
+	pipe.engine = jobpoolengine.New(
+		builderOpts.messagePool,
+		processor,
+		builderOpts.nPoolWorkers,
 	)
 	return nil
 }
