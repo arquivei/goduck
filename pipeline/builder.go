@@ -41,7 +41,7 @@ func build(c pipelineBuilderOptions) (Pipeline, error) {
 	case shouldBuildWithMessagePoolEngine(c) && shouldBuildWithSomeStreamEngine(c):
 		// sanity check
 		// This is already checked by checkPipelineBuilderOptions()
-		err = errors.E(op, ErrBothInputSet)
+		err = ErrBothInputSet
 	case shouldBuildWithMessagePoolEngine(c):
 		err = buildWithMessagePoolEngine(c, p)
 	case shouldBuildWithSomeStreamEngine(c):
@@ -49,7 +49,7 @@ func build(c pipelineBuilderOptions) (Pipeline, error) {
 	default:
 		// sanity check
 		// This is already checked by checkPipelineBuilderOptions()
-		err = errors.E(op, ErrEmptyInputStreamOrMessagePool)
+		err = ErrEmptyInputStreamOrMessagePool
 	}
 
 	if err != nil {
