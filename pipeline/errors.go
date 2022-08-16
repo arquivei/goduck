@@ -8,8 +8,10 @@ var (
 	ErrShutdown = errors.New("shutdown didn't finished as expected")
 	// ErrEndpointNil is an error returned when the endpoint is nil.
 	ErrEndpointNil = errors.New("endpoint is nil")
-	// ErrInputStreamNil is an error returned when the streams a nil or empty slices.
-	ErrInputStreamNil = errors.New("input streams are nil or empty")
+	// ErrEmptyInputStreamOrMessagePool is an error returned when the streams and the message pool a nil or empty slices.
+	ErrEmptyInputStreamOrMessagePool = errors.New("input streams and message pool are nil or empty")
+	//ErrBothInputSet is an error returned if both input stream and message pool are set. Only one is allowed.
+	ErrBothInputSet = errors.New("input streams and message pool cannot be set simultaneously")
 	// ErrNilDecoders is an error returned when both decoders are nil.
 	ErrNilDecoders = errors.New("decoder and batch decoder are both nil")
 	// ErrBothDecodersSet is an error returned when both decoders are set. Only one is allowed.

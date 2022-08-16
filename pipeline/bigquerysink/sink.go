@@ -63,7 +63,7 @@ func (s *bigquerySink) Store(ctx context.Context, sinkmessages ...pipeline.SinkM
 		message, ok := sinkmessage.(Message)
 		if !ok {
 			if s.shouldIgnoreUnkownMessages {
-				logger.Warn().Msg("[bigquerySink] Ignoring unknown message type.")
+				logger.Warn().Msg("[goduck][pipeline][bigquerySink] Ignoring unknown message type.")
 				continue
 			}
 			return errors.E(op, ErrUnkownMessageType)
@@ -72,7 +72,7 @@ func (s *bigquerySink) Store(ctx context.Context, sinkmessages ...pipeline.SinkM
 		err := checkMessage(message)
 		if err != nil {
 			if s.shouldIgnoreValidationErrors {
-				logger.Warn().Msg("[bigquerySink] Ignoring invalid messages.")
+				logger.Warn().Msg("[goduck][pipeline][bigquerySink] Ignoring invalid messages.")
 				continue
 			}
 			return errors.E(op, errors.SeverityInput, err)
@@ -92,7 +92,7 @@ func (s *bigquerySink) Store(ctx context.Context, sinkmessages ...pipeline.SinkM
 		job.rows = append(job.rows, message.Data)
 		logger.Trace().
 			Str("bigquery_table", tname).
-			Msg("[bigquerySink] Message processed.")
+			Msg("[goduck][pipeline][bigquerySink] Message processed.")
 	}
 
 	for _, job := range putJobs {
@@ -102,7 +102,7 @@ func (s *bigquerySink) Store(ctx context.Context, sinkmessages ...pipeline.SinkM
 		}
 	}
 
-	logger.Trace().Msg("[bigquerySink] All messages processed.")
+	logger.Trace().Msg("[goduck][pipeline][bigquerySink] All messages processed.")
 
 	return nil
 }

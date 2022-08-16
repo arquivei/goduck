@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/arquivei/foundationkit/errors"
+	"github.com/arquivei/goduck/impl/implqueue/pubsubqueue"
 )
 
 // Config contains the parameters for a general purpose pipeline. This
@@ -26,12 +27,22 @@ type Config struct {
 		MaxProcessingRetries   int `default:"10"`
 		DLQKafkaTopic          string
 	}
-	StaleAfter time.Duration
-	Kafka      struct {
+	MessagePool MessagePoolConfig
+	StaleAfter  time.Duration
+	Kafka       struct {
 		Brokers  string
 		Username string
 		Password string `secret:"true"`
 	}
+}
+
+// MessagePoolConfig contains parameters for configuring a Message
+// Poll Engine. This is already embeded in the Config struct and is
+// used by New function when filled.
+type MessagePoolConfig struct {
+	Provider string
+	NWorkers int `default:"1"`
+	Pubsub   pubsubqueue.PubsubConfigs
 }
 
 func checkConfig(config *Config) error {

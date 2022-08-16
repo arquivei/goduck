@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/arquivei/goduck"
+	"github.com/arquivei/goduck/impl/implqueue/pubsubqueue"
 	"github.com/go-kit/kit/endpoint"
 )
 
@@ -28,6 +29,8 @@ func WithConfig(userConfig Config) Option {
 			c.dlq.username = userConfig.Kafka.Username
 			c.dlq.password = userConfig.Kafka.Password
 		}
+
+		withMessagePoolConfig(userConfig.MessagePool)(c)
 
 		c.middlewares = append(c.middlewares, getMiddlewares(userConfig)...)
 	}
@@ -76,5 +79,24 @@ func WithMiddlewares(
 ) Option {
 	return func(c *pipelineBuilderOptions) {
 		c.middlewares = append(c.middlewares, middlewares...)
+	}
+}
+
+func withMessagePoolConfig(userConfig MessagePoolConfig) Option {
+	return func(c *pipelineBuilderOptions) {
+		if userConfig.Provider == "" {
+			return
+		}
+		switch userConfig.Provider {
+		case "pubsub":
+			pool, err := pubsubqueue.New(userConfig.Pubsub)
+			if err != nil {
+				panic(err)
+			}
+			c.messagePool = pool
+			c.nPoolWorkers = userConfig.NWorkers
+		default:
+			panic("invalid message pool provider: " + userConfig.Provider)
+		}
 	}
 }

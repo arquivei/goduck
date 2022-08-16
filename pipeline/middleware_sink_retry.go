@@ -47,7 +47,7 @@ func (s *sinkRetrier) Store(ctx context.Context, input ...SinkMessage) error {
 		if err := s.next.Store(ctx, input...); err != nil {
 			// Logs only runtime errors so we can observe individual fails
 			if errors.GetSeverity(err) == errors.SeverityRuntime {
-				log.Ctx(ctx).Warn().Err(err).Msg("[pipeline] Failed to send message to sink.")
+				log.Ctx(ctx).Warn().Err(err).Msg("[goduck][pipeline] Failed to send message to sink.")
 			}
 			return err
 		}

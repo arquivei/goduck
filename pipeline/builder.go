@@ -14,6 +14,7 @@ import (
 	"github.com/arquivei/foundationkit/gokitmiddlewares/timeoutmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/trackingmiddleware"
 	"github.com/arquivei/goduck/engine/batchstreamengine"
+	"github.com/arquivei/goduck/engine/jobpoolengine"
 	"github.com/arquivei/goduck/engine/streamengine"
 	"github.com/arquivei/goduck/gokithelper"
 	"github.com/go-kit/kit/endpoint"
@@ -37,15 +38,36 @@ func build(c pipelineBuilderOptions) (Pipeline, error) {
 	}
 
 	switch {
-	case c.batchDecoder != nil:
-		setupBatchProcessor(c, p)
-	case c.decoder != nil:
-		setupProcessor(c, p)
+	case shouldBuildWithMessagePoolEngine(c) && shouldBuildWithSomeStreamEngine(c):
+		// sanity check
+		// This is already checked by checkPipelineBuilderOptions()
+		err = ErrBothInputSet
+	case shouldBuildWithMessagePoolEngine(c):
+		err = buildWithMessagePoolEngine(c, p)
+	case shouldBuildWithSomeStreamEngine(c):
+		err = buildWithSomeStreamEngine(c, p)
+	default:
+		// sanity check
+		// This is already checked by checkPipelineBuilderOptions()
+		err = ErrEmptyInputStreamOrMessagePool
 	}
+
+	if err != nil {
+		return nil, errors.E(op, err)
+	}
+
 	return p, nil
 }
 
-func setupBatchProcessor(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
+func shouldBuildWithMessagePoolEngine(c pipelineBuilderOptions) bool {
+	return c.messagePool != nil
+}
+
+func shouldBuildWithSomeStreamEngine(c pipelineBuilderOptions) bool {
+	return len(c.inputStreams) > 0
+}
+
+func buildWithBachStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
 	processor, err := gokithelper.NewEndpointBatchProcessor(
 		internalConfig.endpoint,
 		internalConfig.batchDecoder,
@@ -73,7 +95,14 @@ func setupBatchProcessor(internalConfig pipelineBuilderOptions, pipe *pipeline) 
 	return nil
 }
 
-func setupProcessor(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
+func buildWithSomeStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
+	if builderOpts.batchDecoder != nil {
+		return buildWithBachStreamEngine(builderOpts, pipe)
+	}
+	return buildWithStreamEngine(builderOpts, pipe)
+}
+
+func buildWithStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
 	processor, err := gokithelper.NewEndpointProcessor(
 		builderOpts.endpoint,
 		builderOpts.decoder,
@@ -99,6 +128,23 @@ func setupProcessor(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
 	return nil
 }
 
+func buildWithMessagePoolEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
+	processor, err := gokithelper.NewEndpointProcessor(
+		builderOpts.endpoint,
+		builderOpts.decoder,
+	)
+	if err != nil {
+		return err
+	}
+
+	pipe.engine = jobpoolengine.New(
+		builderOpts.messagePool,
+		processor,
+		builderOpts.nPoolWorkers,
+	)
+	return nil
+}
+
 func getMiddlewares(config Config) []endpoint.Middleware {
 	timeoutConfig := timeoutmiddleware.Config{
 		Timeout:       time.Duration(config.InputStream.ProcessingTimeoutMilli) * time.Millisecond,
@@ -118,7 +164,7 @@ func getMiddlewares(config Config) []endpoint.Middleware {
 		c := stalemiddleware.NewDefaultConfig(app.HealthinessProbeGroup())
 		c.MaxTimeBetweenRequests = config.StaleAfter
 		e = append(e, stalemiddleware.New(c))
-		log.Warn().Msgf("Stale middleware is active. The system will be set to unhealthy if no message is received in %s.", config.StaleAfter.String())
+		log.Warn().Msgf("[goduck][pipeline] Stale middleware is active. The system will be set to unhealthy if no message is received in %s.", config.StaleAfter.String())
 	}
 	return e
 }
