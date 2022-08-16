@@ -36,7 +36,9 @@ type Config struct {
 	}
 }
 
-// MessagePoolConfig TODO
+// MessagePoolConfig contains parameters for configuring a Message
+// Poll Engine. This is already embeded in the Config struct and is
+// used by New function when filled.
 type MessagePoolConfig struct {
 	Provider string
 	NWorkers int `default:"1"`

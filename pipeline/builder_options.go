@@ -93,7 +93,7 @@ func checkPipelineBuilderOptions(c pipelineBuilderOptions) error {
 	}
 
 	if c.dlq.brokers == nil {
-		log.Warn().Msg("No DLQ Topic is set, all messages will be retried forever.")
+		log.Warn().Msg("[goduck][pipeline] No DLQ Topic is set, all messages will be retried indefinitely.")
 	}
 	return nil
 }

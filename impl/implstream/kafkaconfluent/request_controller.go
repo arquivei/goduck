@@ -51,8 +51,8 @@ func (r *requestController) requestJob() error {
 // getResult waits for the worker to complete the job and returns the result.
 // 3 things can happen here:
 //   - The job result arrives. This puts the controller in the !pending state.
-//   - The controller was closed. Returns EOF
-//   - The context expired. An error will be returned, but getResult can be
+//   - The controller is closed. Returns EOF
+//   - The context expired. An error is returned, but getResult can be
 //     called again later.
 func (r *requestController) getResult(ctx context.Context) (*kafka.Message, error) {
 	const op = errors.Op("getResult")
