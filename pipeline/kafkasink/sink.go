@@ -76,8 +76,8 @@ func (p *kafkaPusher) Store(ctx context.Context, messages ...pipeline.SinkMessag
 		sdkMessages[i] = sdkMsg
 	}
 
-	deliveryChan := make(chan kafka.Event)
-	defer close(deliveryChan)
+	deliveryChan := make(chan kafka.Event, len(sdkMessages))
+
 	for _, msg := range sdkMessages {
 		err := p.producer.Produce(msg, deliveryChan)
 		if err != nil {
