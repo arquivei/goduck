@@ -11,7 +11,7 @@ require (
 	github.com/go-kit/kit v0.12.0
 	github.com/imkira/go-observer v1.0.3
 	github.com/olivere/elastic/v7 v7.0.32
-	github.com/rs/zerolog v1.26.1
+	github.com/rs/zerolog v1.28.0
 	github.com/segmentio/kafka-go v0.4.28
 	github.com/stretchr/testify v1.7.2
 )
@@ -47,6 +47,8 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/omeid/uconfig v1.2.0 // indirect
