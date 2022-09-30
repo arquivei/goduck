@@ -54,15 +54,15 @@ func (_c *MockPubsubClientGateway_Close_Call) Return(_a0 error) *MockPubsubClien
 }
 
 // Topic provides a mock function with given fields: name
-func (_m *MockPubsubClientGateway) Topic(name string) TopicGateway {
+func (_m *MockPubsubClientGateway) Topic(name string) topicGateway {
 	ret := _m.Called(name)
 
-	var r0 TopicGateway
-	if rf, ok := ret.Get(0).(func(string) TopicGateway); ok {
+	var r0 topicGateway
+	if rf, ok := ret.Get(0).(func(string) topicGateway); ok {
 		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(TopicGateway)
+			r0 = ret.Get(0).(topicGateway)
 		}
 	}
 
@@ -87,7 +87,7 @@ func (_c *MockPubsubClientGateway_Topic_Call) Run(run func(name string)) *MockPu
 	return _c
 }
 
-func (_c *MockPubsubClientGateway_Topic_Call) Return(_a0 TopicGateway) *MockPubsubClientGateway_Topic_Call {
+func (_c *MockPubsubClientGateway_Topic_Call) Return(_a0 topicGateway) *MockPubsubClientGateway_Topic_Call {
 	_c.Call.Return(_a0)
 	return _c
 }

@@ -9,20 +9,21 @@ import (
 	"github.com/arquivei/goduck/pipeline"
 )
 
-// PublishResult is the result of a Publish call for the TopicGateway.
-type PublishResult interface {
+// publishResult is the result of a Publish call for the TopicGateway.
+type publishResult interface {
 	Get(ctx context.Context) (string, error)
 }
 
-// TopicGateway represents the gateway to a pubsub topic.
-type TopicGateway interface {
-	Publish(ctx context.Context, msg *pubsub.Message) PublishResult
+// topicGateway represents the gateway to a pubsub topic.
+type topicGateway interface {
+	Publish(ctx context.Context, msg *pubsub.Message) publishResult
 	Exists(ctx context.Context) (bool, error)
 	Stop()
 }
 
+// PubSubClientGateway represents the gateway to a pubsub client.
 type PubsubClientGateway interface {
-	Topic(name string) TopicGateway
+	Topic(name string) topicGateway
 	Close() error
 }
 
@@ -54,7 +55,7 @@ func MustNew(client PubsubClientGateway) (sink *Sink, closeFunc func()) {
 	}, closeFunc
 }
 
-func (s *Sink) getTopic(ctx context.Context, topicID string) (topic TopicGateway, closeFunc func(), err error) {
+func (s *Sink) getTopic(ctx context.Context, topicID string) (topic topicGateway, closeFunc func(), err error) {
 	op := errors.Op("pubsubsink.sink.getTopic")
 	topic = s.pubsubClient.Topic(topicID)
 	ok, err := topic.Exists(ctx)
@@ -71,7 +72,7 @@ func (s *Sink) getTopic(ctx context.Context, topicID string) (topic TopicGateway
 func (s *Sink) Store(ctx context.Context, messages ...pipeline.SinkMessage) error {
 	op := errors.Op("pubsubsink.Sink.Store")
 
-	topicStorage := make(map[string]TopicGateway)
+	topicStorage := make(map[string]topicGateway)
 	closeTopics := []func(){}
 	defer func() {
 		for _, closeTopic := range closeTopics {

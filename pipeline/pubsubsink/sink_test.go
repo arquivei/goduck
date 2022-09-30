@@ -25,13 +25,13 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "success - no messages",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := NewMockTopicGateway(t)
+				topic1 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic1").Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
 				topic1.EXPECT().Stop().Once()
 
-				result1 := NewMockPublishResult(t)
+				result1 := newMockPublishResult(t)
 				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message1"),
 				}).Return(result1).Once()
@@ -51,19 +51,19 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "success - MUlti messages with same topic",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := NewMockTopicGateway(t)
+				topic1 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic1").Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
 				topic1.EXPECT().Stop().Once()
 
-				result1 := NewMockPublishResult(t)
+				result1 := newMockPublishResult(t)
 				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message1"),
 				}).Return(result1).Once()
 				result1.EXPECT().Get(context.Background()).Return("message1", nil).Once()
 
-				result2 := NewMockPublishResult(t)
+				result2 := newMockPublishResult(t)
 				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message2"),
 				}).Return(result2).Once()
@@ -87,30 +87,30 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "success - MUlti messages with multiple topics",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := NewMockTopicGateway(t)
+				topic1 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic1").Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
 				topic1.EXPECT().Stop().Once()
 
-				result1 := NewMockPublishResult(t)
+				result1 := newMockPublishResult(t)
 				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message1"),
 				}).Return(result1).Once()
 				result1.EXPECT().Get(context.Background()).Return("message1", nil).Once()
 
-				result2 := NewMockPublishResult(t)
+				result2 := newMockPublishResult(t)
 				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message2"),
 				}).Return(result2).Once()
 				result2.EXPECT().Get(context.Background()).Return("message2", nil).Once()
 
-				topic2 := NewMockTopicGateway(t)
+				topic2 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic2").Return(topic2).Once()
 				topic2.EXPECT().Exists(context.Background()).Return(true, nil).Once()
 				topic2.EXPECT().Stop().Once()
 
-				result3 := NewMockPublishResult(t)
+				result3 := newMockPublishResult(t)
 				topic2.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message3"),
 				}).Return(result3).Once()
@@ -149,7 +149,7 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "error - topic does not exist",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := NewMockTopicGateway(t)
+				topic1 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic1").Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(false, nil).Once()
@@ -168,7 +168,7 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "error - topic exists check fails",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := NewMockTopicGateway(t)
+				topic1 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic1").Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(false, errors.New("error")).Once()
@@ -187,13 +187,13 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "error - publish fails",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := NewMockTopicGateway(t)
+				topic1 := newMockTopicGateway(t)
 				m.EXPECT().Topic("topic1").Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
 				topic1.EXPECT().Stop().Once()
 
-				result1 := NewMockPublishResult(t)
+				result1 := newMockPublishResult(t)
 				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
 					Data: []byte("message1"),
 				}).Return(result1).Once()
