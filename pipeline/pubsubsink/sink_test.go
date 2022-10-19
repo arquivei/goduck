@@ -3,7 +3,6 @@ package pubsubsink
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"cloud.google.com/go/pubsub"
@@ -282,16 +281,13 @@ func TestMustNew(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			gateway := tt.getGateway(t)
-			fmt.Println(tt.name, gateway)
 			if tt.wantPanic {
 				assert.Panics(t, func() {
-					fmt.Println(tt.name, gateway)
 					MustNew(gateway)
 				})
 				return
 			}
 			assert.NotPanics(t, func() {
-				fmt.Println(tt.name, gateway)
 				_, closeFunc := MustNew(gateway)
 				closeFunc()
 			})

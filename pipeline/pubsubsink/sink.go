@@ -2,7 +2,6 @@ package pubsubsink
 
 import (
 	"context"
-	"fmt"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/arquivei/foundationkit/errors"
@@ -41,7 +40,6 @@ type SinkMessage struct {
 // MustNew creates a new pubsub sink or panics if fails
 func MustNew(client PubsubClientGateway) (sink *Sink, closeFunc func()) {
 	op := errors.Op("pubsubsink.MustNew")
-	fmt.Println(client == nil)
 	if client == nil {
 		panic(errors.E(op, "topic gateway is nil"))
 	}
