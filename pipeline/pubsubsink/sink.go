@@ -2,7 +2,6 @@ package pubsubsink
 
 import (
 	"context"
-	"fmt"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/arquivei/foundationkit/errors"

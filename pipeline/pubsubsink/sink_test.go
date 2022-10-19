@@ -3,7 +3,6 @@ package pubsubsink
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"cloud.google.com/go/pubsub"
