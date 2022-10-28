@@ -101,6 +101,7 @@ func TestMustNewParallel(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestStore(t *testing.T) {
 	t.Parallel()
 
