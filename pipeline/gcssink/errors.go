@@ -3,12 +3,17 @@ package gcssink
 import "github.com/arquivei/foundationkit/errors"
 
 var (
-	// ErrInvalidSinkMessage is returned when sink message is not a gcssink.SinkMessage
-	ErrInvalidSinkMessage = errors.New("invalid sink message")
-	// ErrFailedToWriteAtBicket is returned when a error occurs while writing to gcs
-	ErrFailedToWriteAtBucket = errors.New("failed to write the message at gcs bucket")
-	// ErrFailedToCloseBucket is returned when a error occurs while closing gcs bucket
-	ErrFailedToCloseBucket = errors.New("failed to close gcs bucket connection")
+	// CodeWrongTypeSinkMessage is returned when sink message is not a gcssink.SinkMessage
+	CodeWrongTypeSinkMessage = errors.Code("WRONG_TYPE_SINK_MESSAGE")
+	// CodeEmptyDataSinkMessage is returned when sink message data is empty
+	CodeEmptyDataSinkMessage = errors.Code("EMPTY_DATA_MESSAGE")
+	// CodeFailedToWriteAtBucket is returned when a error occurs while writing to gcs
+	CodeFailedToWriteAtBucket = errors.Code("FAILED_TO_WRITE_AT_BUCKET")
+	// CodeFailedToCloseBucket is returned when a error occurs while closing gcs bucket
+	CodeFailedToCloseBucket = errors.Code("FAILED_TO_CLOSE_BUCKET")
+
 	// ErrFailedToCloseSink is returned when any error occurs while gcsClientGateway is writing
 	ErrFailedToStoreMessages = errors.New("failed to store messages")
+	// ErrInvalidMessage is returned when sink message is invalid
+	ErrInvalidSinkMessage = errors.New("invalid sink message")
 )

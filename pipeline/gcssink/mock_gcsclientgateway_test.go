@@ -59,13 +59,20 @@ func (_c *MockGcsClientGateway_Close_Call) Return(_a0 error) *MockGcsClientGatew
 	return _c
 }
 
-// GetWriter provides a mock function with given fields: ctx, bucket, object, contentType, chunkSize, retrierConfig
-func (_m *MockGcsClientGateway) GetWriter(ctx context.Context, bucket string, object string, contentType string, chunkSize int, retrierConfig []storage.RetryOption) *storage.Writer {
-	ret := _m.Called(ctx, bucket, object, contentType, chunkSize, retrierConfig)
+// GetWriter provides a mock function with given fields: ctx, bucket, object, contentType, chunkSize, retrierOption
+func (_m *MockGcsClientGateway) GetWriter(ctx context.Context, bucket string, object string, contentType string, chunkSize int, retrierOption ...storage.RetryOption) *storage.Writer {
+	_va := make([]interface{}, len(retrierOption))
+	for _i := range retrierOption {
+		_va[_i] = retrierOption[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, bucket, object, contentType, chunkSize)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *storage.Writer
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, int, []storage.RetryOption) *storage.Writer); ok {
-		r0 = rf(ctx, bucket, object, contentType, chunkSize, retrierConfig)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, int, ...storage.RetryOption) *storage.Writer); ok {
+		r0 = rf(ctx, bucket, object, contentType, chunkSize, retrierOption...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*storage.Writer)
@@ -86,14 +93,21 @@ type MockGcsClientGateway_GetWriter_Call struct {
 //   - object string
 //   - contentType string
 //   - chunkSize int
-//   - retrierConfig []storage.RetryOption
-func (_e *MockGcsClientGateway_Expecter) GetWriter(ctx interface{}, bucket interface{}, object interface{}, contentType interface{}, chunkSize interface{}, retrierConfig interface{}) *MockGcsClientGateway_GetWriter_Call {
-	return &MockGcsClientGateway_GetWriter_Call{Call: _e.mock.On("GetWriter", ctx, bucket, object, contentType, chunkSize, retrierConfig)}
+//   - retrierOption ...storage.RetryOption
+func (_e *MockGcsClientGateway_Expecter) GetWriter(ctx interface{}, bucket interface{}, object interface{}, contentType interface{}, chunkSize interface{}, retrierOption ...interface{}) *MockGcsClientGateway_GetWriter_Call {
+	return &MockGcsClientGateway_GetWriter_Call{Call: _e.mock.On("GetWriter",
+		append([]interface{}{ctx, bucket, object, contentType, chunkSize}, retrierOption...)...)}
 }
 
-func (_c *MockGcsClientGateway_GetWriter_Call) Run(run func(ctx context.Context, bucket string, object string, contentType string, chunkSize int, retrierConfig []storage.RetryOption)) *MockGcsClientGateway_GetWriter_Call {
+func (_c *MockGcsClientGateway_GetWriter_Call) Run(run func(ctx context.Context, bucket string, object string, contentType string, chunkSize int, retrierOption ...storage.RetryOption)) *MockGcsClientGateway_GetWriter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(int), args[5].([]storage.RetryOption))
+		variadicArgs := make([]storage.RetryOption, len(args)-5)
+		for i, a := range args[5:] {
+			if a != nil {
+				variadicArgs[i] = a.(storage.RetryOption)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(int), variadicArgs...)
 	})
 	return _c
 }
@@ -124,7 +138,7 @@ type MockGcsClientGateway_Write_Call struct {
 
 // Write is a helper method to define mock.On call
 //   - writer *storage.Writer
-//   - message SinkMessage
+//   - message gcssink.SinkMessage
 func (_e *MockGcsClientGateway_Expecter) Write(writer interface{}, message interface{}) *MockGcsClientGateway_Write_Call {
 	return &MockGcsClientGateway_Write_Call{Call: _e.mock.On("Write", writer, message)}
 }

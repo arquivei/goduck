@@ -18,7 +18,7 @@ func TestMustNewParallel(t *testing.T) {
 		clientGateway func(t *testing.T) GcsClientGateway
 		contentType   string
 		chunkSize     int
-		retrierConfig []storage.RetryOption
+		retrierOption []storage.RetryOption
 	}
 
 	tests := []struct {
@@ -36,7 +36,7 @@ func TestMustNewParallel(t *testing.T) {
 				},
 				contentType:   "application/json",
 				chunkSize:     100,
-				retrierConfig: []storage.RetryOption{},
+				retrierOption: []storage.RetryOption{},
 			},
 			wantPanic: false,
 		},
@@ -49,7 +49,7 @@ func TestMustNewParallel(t *testing.T) {
 				},
 				contentType:   "application/json",
 				chunkSize:     100,
-				retrierConfig: []storage.RetryOption{},
+				retrierOption: []storage.RetryOption{},
 			},
 			wantPanic: true,
 		},
@@ -63,7 +63,7 @@ func TestMustNewParallel(t *testing.T) {
 				},
 				contentType:   "",
 				chunkSize:     100,
-				retrierConfig: []storage.RetryOption{},
+				retrierOption: []storage.RetryOption{},
 			},
 			wantPanic: true,
 		},
@@ -77,7 +77,7 @@ func TestMustNewParallel(t *testing.T) {
 				},
 				contentType:   "application/json",
 				chunkSize:     0,
-				retrierConfig: []storage.RetryOption{},
+				retrierOption: []storage.RetryOption{},
 			},
 			wantPanic: true,
 		},
@@ -89,12 +89,12 @@ func TestMustNewParallel(t *testing.T) {
 			gateway := test.args.clientGateway(t)
 			if test.wantPanic {
 				assert.Panics(t, func() {
-					MustNewParallel(gateway, test.args.contentType, test.args.chunkSize, test.args.retrierConfig)
+					MustNewParallel(gateway, test.args.contentType, test.args.chunkSize, test.args.retrierOption)
 				})
 				return
 			}
 			assert.NotPanics(t, func() {
-				_, closeFunc := MustNewParallel(gateway, test.args.contentType, test.args.chunkSize, test.args.retrierConfig)
+				_, closeFunc := MustNewParallel(gateway, test.args.contentType, test.args.chunkSize, test.args.retrierOption)
 				closeFunc()
 			})
 		})
@@ -182,15 +182,13 @@ func TestStore(t *testing.T) {
 				},
 			},
 			err:           true,
-			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(ErrInvalidSinkMessage, errors.KV("type", "string"))})).Error(),
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(ErrInvalidSinkMessage, CodeWrongTypeSinkMessage)})).Error(),
 		},
 
 		{
 			name: "[ERROR] - should return error when message data is empty",
 			args: args{
 				setupMock: func(m *MockGcsClientGateway) {
-					m.EXPECT().GetWriter(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Times(1)
-					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), ErrInvalidSinkMessage)).Times(1)
 					m.EXPECT().Close().Return(nil).Times(1)
 				},
 				context: context.Background(),
@@ -206,7 +204,7 @@ func TestStore(t *testing.T) {
 				},
 			},
 			err:           true,
-			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), ErrInvalidSinkMessage)})).Error(),
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(ErrInvalidSinkMessage, CodeEmptyDataSinkMessage)})).Error(),
 		},
 
 		{
@@ -214,7 +212,7 @@ func TestStore(t *testing.T) {
 			args: args{
 				setupMock: func(m *MockGcsClientGateway) {
 					m.EXPECT().GetWriter(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Times(1)
-					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), ErrFailedToWriteAtBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"), errors.KV("error", storage.ErrObjectNotExist))).Times(1)
+					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to write"), CodeFailedToWriteAtBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))).Times(1)
 					m.EXPECT().Close().Return(nil).Times(1)
 				},
 				context: context.Background(),
@@ -230,7 +228,7 @@ func TestStore(t *testing.T) {
 				},
 			},
 			err:           true,
-			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), ErrFailedToWriteAtBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"), errors.KV("error", storage.ErrObjectNotExist))})).Error(),
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to write"), CodeFailedToWriteAtBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))})).Error(),
 		},
 
 		{
@@ -238,7 +236,7 @@ func TestStore(t *testing.T) {
 			args: args{
 				setupMock: func(m *MockGcsClientGateway) {
 					m.EXPECT().GetWriter(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Times(1)
-					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), ErrFailedToCloseBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"), errors.KV("error", "failed to close"))).Times(1)
+					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to close"), CodeFailedToCloseBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))).Times(1)
 					m.EXPECT().Close().Return(nil).Times(1)
 				},
 				context: context.Background(),
@@ -254,7 +252,7 @@ func TestStore(t *testing.T) {
 				},
 			},
 			err:           true,
-			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), ErrFailedToCloseBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"), errors.KV("error", "failed to close"))})).Error(),
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to close"), CodeFailedToCloseBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))})).Error(),
 		},
 	}
 

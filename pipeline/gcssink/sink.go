@@ -2,19 +2,18 @@ package gcssink
 
 import (
 	"context"
-	"fmt"
-	"sync"
 
 	"cloud.google.com/go/storage"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck/pipeline"
+	"golang.org/x/sync/errgroup"
 )
 
 // GcsClientGateway represents a gateway to GCS client
 type GcsClientGateway interface {
-	// GetWriter returns a writer to a GCS object with the given bucket, object, contentType, chunkSize and retrierConfig.
-	// If retrierConfig is not empty, the writer will be configured with the given retry options.
-	GetWriter(ctx context.Context, bucket, object, contentType string, chunkSize int, retrierConfig []storage.RetryOption) *storage.Writer
+	// GetWriter returns a writer to a GCS object with the given bucket, object, contentType, chunkSize and retrierOption.
+	// If retrierOption is not empty, the writer will be configured with the given retry options.
+	GetWriter(ctx context.Context, bucket, object, contentType string, chunkSize int, retrierOption ...storage.RetryOption) *storage.Writer
 	// Write writes the given message to the given writer.
 	Write(writer *storage.Writer, message SinkMessage) error
 	// Close closes the GCS client
@@ -26,11 +25,11 @@ type gcsParallelWriter struct {
 	clientGateway GcsClientGateway
 	contentType   string
 	chunkSize     int
-	// retrierConfig is the configuration for the retrier. It is used to
+	// retrierOption is the configuration for the retrier. It is used to
 	// configure the retry police for the GCS client. Storage sdk provides
 	// some functions to create the retrier config. See:
 	// https://pkg.go.dev/cloud.google.com/go/storage#RetryOption
-	retrierConfig []storage.RetryOption
+	retrierOption []storage.RetryOption
 }
 
 // SinkMessage is the input for the GCS Sink
@@ -47,7 +46,7 @@ func MustNewParallel(
 	clientGateway GcsClientGateway,
 	contentType string,
 	chunkSize int,
-	retrierConfig []storage.RetryOption,
+	retrierOption []storage.RetryOption,
 ) (pipeline.Sink, func() error) {
 	if clientGateway == nil {
 		panic("clientGateway is nil")
@@ -65,14 +64,10 @@ func MustNewParallel(
 		clientGateway: clientGateway,
 		contentType:   contentType,
 		chunkSize:     chunkSize,
-		retrierConfig: retrierConfig,
+		retrierOption: retrierOption,
 	}
 
-	closeFn := func() error {
-		return clientGateway.Close()
-	}
-
-	return writer, closeFn
+	return writer, clientGateway.Close
 }
 
 // Store implements the pipeline.Sink interface. It writes a batch of messages in parallel.
@@ -80,40 +75,44 @@ func MustNewParallel(
 func (w *gcsParallelWriter) Store(ctx context.Context, messages ...pipeline.SinkMessage) error {
 	const op = errors.Op("gcssink.gcsParallelWriter.Store")
 
-	wg := &sync.WaitGroup{}
-
 	if len(messages) == 0 || messages == nil {
 		return nil
 	}
 
-	errs := make(chan error, len(messages))
-	for _, msg := range messages {
-		wg.Add(1)
-		go func(msg pipeline.SinkMessage) {
-			defer wg.Done()
+	g := &errgroup.Group{}
+	errChan := make(chan error, len(messages))
 
-			sinkMsg, ok := msg.(SinkMessage)
+	for _, message := range messages {
+		message := message
+		g.Go(func() error {
+			sinkMsg, ok := message.(SinkMessage)
 			if !ok {
-				errs <- errors.E(ErrInvalidSinkMessage, errors.KV("type", fmt.Sprintf("%T", msg)))
-				return
+				errChan <- errors.E(ErrInvalidSinkMessage, CodeWrongTypeSinkMessage)
+				return nil
 			}
 
-			writer := w.clientGateway.GetWriter(ctx, sinkMsg.Bucket, sinkMsg.StoragePath, w.contentType, w.chunkSize, w.retrierConfig)
-			errs <- w.clientGateway.Write(writer, sinkMsg)
+			if sinkMsg.Data == nil {
+				errChan <- errors.E(ErrInvalidSinkMessage, CodeEmptyDataSinkMessage)
+				return nil
+			}
 
-		}(msg)
+			writer := w.clientGateway.GetWriter(ctx, sinkMsg.Bucket, sinkMsg.StoragePath, w.contentType, w.chunkSize, w.retrierOption...)
+			errChan <- w.clientGateway.Write(writer, sinkMsg)
+
+			return nil
+		})
 	}
 
-	wg.Wait()
+	g.Wait()
 
 	var sliceErrs []error
 	for range messages {
-		if e := <-errs; e != nil {
+		if e := <-errChan; e != nil {
 			sliceErrs = append(sliceErrs, e)
 		}
 	}
 
-	close(errs) // TODO: check if this should be here
+	close(errChan)
 
 	if len(sliceErrs) > 0 {
 		return errors.E(op, ErrFailedToStoreMessages, errors.KV("errors", sliceErrs))

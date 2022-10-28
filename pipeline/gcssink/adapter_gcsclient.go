@@ -7,6 +7,8 @@ import (
 	"github.com/arquivei/foundationkit/errors"
 )
 
+// gcsClientGateway implements GcsClientGateway interface and is responsible for
+// interacting with GCS client and its objects
 type gcsClientGateway struct {
 	storageClient *storage.Client
 }
@@ -21,13 +23,13 @@ func (g gcsClientGateway) GetWriter(
 	ctx context.Context,
 	bucket, object, contentType string,
 	chunkSize int,
-	retrierConfig []storage.RetryOption,
+	retrierOption ...storage.RetryOption,
 ) *storage.Writer {
 	bucketHandler := g.storageClient.Bucket(bucket)
 	obj := bucketHandler.Object(object)
 
-	if len(retrierConfig) > 0 {
-		obj = obj.Retryer(retrierConfig...)
+	if len(retrierOption) > 0 {
+		obj = obj.Retryer(retrierOption...)
 	}
 
 	writer := obj.NewWriter(ctx)
@@ -40,16 +42,12 @@ func (g gcsClientGateway) GetWriter(
 func (g gcsClientGateway) Write(writer *storage.Writer, message SinkMessage) error {
 	const op = errors.Op("gcssink.gcsClientGateway.Write")
 
-	if message.Data == nil {
-		return errors.E(op, ErrInvalidSinkMessage)
-	}
-
 	if _, err := writer.Write(message.Data); err != nil {
-		return errors.E(op, ErrFailedToWriteAtBucket, errors.KV("bucket", message.Bucket), errors.KV("path", message.StoragePath), errors.KV("error", err))
+		return errors.E(op, err, CodeFailedToWriteAtBucket, errors.KV("bucket", message.Bucket), errors.KV("path", message.StoragePath))
 	}
 
 	if err := writer.Close(); err != nil {
-		return errors.E(op, ErrFailedToCloseBucket, errors.KV("bucket", message.Bucket), errors.KV("path", message.StoragePath), errors.KV("error", err))
+		return errors.E(op, err, CodeFailedToCloseBucket, errors.KV("bucket", message.Bucket), errors.KV("path", message.StoragePath))
 	}
 
 	return nil
