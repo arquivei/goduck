@@ -44,6 +44,8 @@ type Stream interface {
 // Processor is a basic low level message processor.
 // It should be wrapped with middlewares such as logging, instrumenting,
 // and so on.
+// Deprecated: use MessageHandler instead, as it uses the more generic
+// RawMessage interface.
 type Processor interface {
 	// Process handles a single message in its raw form, exactly as provided
 	// from the source. If the return is an error, the engine is responsible
@@ -58,10 +60,29 @@ type Processor interface {
 	Process(ctx context.Context, message []byte) error
 }
 
+// MessageHandler is a basic low level message processor.
+// It should be wrapped with middlewares such as logging, instrumenting,
+// and so on.
+type MessageHandler interface {
+	// Process handles a single message in its raw form, exactly as provided
+	// from the source. If the return is an error, the engine is responsible
+	// for retrying or marking the message as failed. If the return is nil,
+	// the engine will mark the message as complete.
+	//
+	// Exact guarantees depend on the engine/stream/queue implementation, but
+	// typically this method will be called at least once per message.
+	// Therefore, the implementation should be idempotent.
+	//
+	// Depending on the engine, this method may be called concurrently.
+	Handle(ctx context.Context, message RawMessage) error
+}
+
 // BatchProcessor is a basic low level message processor, that is able to handle
 // multiple messages at once.
 // It should be wrapped with middlewares such as logging, instrumenting,
 // and so on.
+// Deprecated: use BatchMessageHandler instead, as it uses the more generic
+// RawMessage interface.
 type BatchProcessor interface {
 	// Process handles a multiple messages in its raw form, exactly as provided
 	// from the source. If the return is an error, the engine is responsible
@@ -76,6 +97,24 @@ type BatchProcessor interface {
 	BatchProcess(ctx context.Context, messages [][]byte) error
 }
 
+// BatchMessageHandler is a basic low level message processor, that is able to
+// handle multiple messages at once.
+// It should be wrapped with middlewares such as logging, instrumenting,
+// and so on.
+type BatchMessageHandler interface {
+	// Process handles a multiple messages in its raw form, exactly as provided
+	// from the source. If the return is an error, the engine is responsible
+	// for retrying or marking the whole batch as failed. If the return is nil,
+	// the engine will mark the all the messages as complete.
+	//
+	// Exact guarantees depend on the engine/stream/queue implementation, but
+	// typically this method will be called at least once per message.
+	// Therefore, the implementation should be idempotent.
+	//
+	// Depending on the engine, this method may be called concurrently.
+	BatchHandle(ctx context.Context, messages []RawMessage) error
+}
+
 // AnyProcessor refer to structs that can behave both as Processor and
 // BatchProcessor
 type AnyProcessor interface {
@@ -85,8 +124,20 @@ type AnyProcessor interface {
 
 // EndpointDecoder decodes a message into a endpoint request.
 // See go-kit's endpoint.Endpoint.
+// Deprecated: use EndpointMessageDecoder instead, as it uses the more generic
+// RawMessage interface.
 type EndpointDecoder func(context.Context, []byte) (interface{}, error)
 
-// EndpointBatchDecoder decodes a message into a endpoint request.
+// EndpointBatchDecoder decodes a message into an endpoint request.
 // See go-kit's endpoint.Endpoint.
+// Deprecated: use EndpointMessageBatchDecoder instead, as it uses the more
+// generic RawMessage interface.
 type EndpointBatchDecoder func(context.Context, [][]byte) (interface{}, error)
+
+// EndpointMessageDecoder decodes a message into a endpoint request.
+// See go-kit's endpoint.Endpoint.
+type EndpointMessageDecoder func(context.Context, RawMessage) (interface{}, error)
+
+// EndpointMessageBatchDecoder decodes a batch of messages into an endpoint request.
+// See go-kit's endpoint.Endpoint.
+type EndpointMessageBatchDecoder func(context.Context, []RawMessage) (interface{}, error)

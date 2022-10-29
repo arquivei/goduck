@@ -14,11 +14,10 @@ import (
 
 // StreamEngine is an engine that processes a of messages from a stream, with
 // the order preserved.
-// Deprecated: use streamengine/v2 instead
 type StreamEngine struct {
 	streams   []goduck.Stream
 	nWorkers  int
-	processor goduck.Processor
+	handler   goduck.MessageHandler
 	workersWG *sync.WaitGroup
 
 	cancelFn       func()
@@ -26,25 +25,28 @@ type StreamEngine struct {
 }
 
 // NewFromEndpoint creates a StreamEngine from a go-kit endpoint
-// Deprecated: use streamengine/v2 instead
 func NewFromEndpoint(
 	e endpoint.Endpoint,
-	decoder goduck.EndpointDecoder,
+	decoder goduck.EndpointMessageDecoder,
 	streams []goduck.Stream,
-) *StreamEngine {
+) (*StreamEngine, error) {
+	const op = errors.Op("streamengine.NewFromEndpoint")
+	handler, err := gokithelper.NewEndpointHandler(e, decoder)
+	if err != nil {
+		return nil, errors.E(op, err)
+	}
 	return New(
-		gokithelper.MustNewEndpointProcessor(e, decoder),
+		handler,
 		streams,
-	)
+	), nil
 }
 
 // New creates a new StreamEngine
-// Deprecated: use streamengine/v2 instead
-func New(processor goduck.Processor, streams []goduck.Stream) *StreamEngine {
+func New(handler goduck.MessageHandler, streams []goduck.Stream) *StreamEngine {
 	engine := &StreamEngine{
 		streams:        streams,
 		nWorkers:       len(streams),
-		processor:      processor,
+		handler:        handler,
 		workersWG:      &sync.WaitGroup{},
 		cancelFn:       nil,
 		processorError: nil,
@@ -80,7 +82,7 @@ func (e *StreamEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 
 func (e *StreamEngine) handleMessage(ctx context.Context, stream goduck.Stream, msg goduck.RawMessage) {
 	for {
-		err := e.processor.Process(context.Background(), msg.Bytes())
+		err := e.handler.Handle(context.Background(), msg)
 		if err == nil {
 			break
 		}
