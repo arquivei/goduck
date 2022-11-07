@@ -85,6 +85,8 @@ func (w *gcsParallelWriter) Store(ctx context.Context, messages ...pipeline.Sink
 	for _, message := range messages {
 		message := message
 		g.Go(func() error {
+			defer panicToError(errChan)
+
 			sinkMsg, ok := message.(SinkMessage)
 			if !ok {
 				errChan <- errors.E(ErrInvalidSinkMessage, CodeWrongTypeSinkMessage)
@@ -119,4 +121,10 @@ func (w *gcsParallelWriter) Store(ctx context.Context, messages ...pipeline.Sink
 	}
 
 	return nil
+}
+
+func panicToError(errChan chan error) {
+	if r := recover(); r != nil {
+		errChan <- errors.E(ErrPanic, CodePanic, errors.KV("panic", r))
+	}
 }

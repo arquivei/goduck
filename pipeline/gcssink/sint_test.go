@@ -283,3 +283,64 @@ func TestStore(t *testing.T) {
 		})
 	}
 }
+
+func TestPanicToError(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		setupMock func(m *MockGcsClientGateway)
+		context   context.Context
+		messages  []pipeline.SinkMessage
+	}
+
+	tests := []struct {
+		name          string
+		args          args
+		err           bool
+		expectedError string
+	}{
+		{
+			name: "[SUCCESS] - should return error when panic occurs",
+			args: args{
+				setupMock: func(m *MockGcsClientGateway) {
+					m.EXPECT().GetWriter(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Panic("fail to write").Times(1)
+					m.EXPECT().Close().Return(nil).Times(1)
+				},
+				context: context.Background(),
+				messages: []pipeline.SinkMessage{
+					SinkMessage{
+						Data:        []byte("test"),
+						StoragePath: "path",
+						Bucket:      "bucket",
+						Metadata: map[string]string{
+							"key": "value",
+						},
+					},
+				},
+			},
+			err:           true,
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.New("panic occurred while storing to gcs [panic=fail to write]"))})).Error(),
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			gateway := NewMockGcsClientGateway(t)
+
+			if test.args.setupMock != nil {
+				test.args.setupMock(gateway)
+			}
+
+			sink, closeFn := MustNewParallel(gateway, "application/json", 100, []storage.RetryOption{})
+			defer closeFn()
+
+			err := sink.Store(test.args.context, test.args.messages...)
+
+			assert.EqualError(t, err, test.expectedError)
+			assert.Equal(t, test.expectedError, err.Error())
+
+		})
+	}
+}
