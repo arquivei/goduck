@@ -13,12 +13,15 @@ type gcsClientGateway struct {
 	storageClient *storage.Client
 }
 
+// NewGcsClientGateway creates a new GcsClientGateway
 func NewGcsGateway(client *storage.Client) GcsClientGateway {
 	return &gcsClientGateway{
 		storageClient: client,
 	}
 }
 
+// GetWriter returns a writer to a GCS Writer that writes to the GCS object associated with the
+// given bucket, object, contentType, chunkSize and retrierOption.
 func (g gcsClientGateway) GetWriter(
 	ctx context.Context,
 	bucket, object, contentType string,
@@ -39,6 +42,7 @@ func (g gcsClientGateway) GetWriter(
 	return writer
 }
 
+// Write writes the given message at bucket with the given GCS Writer.
 func (g gcsClientGateway) Write(writer *storage.Writer, message SinkMessage) error {
 	const op = errors.Op("gcssink.gcsClientGateway.Write")
 
@@ -53,6 +57,7 @@ func (g gcsClientGateway) Write(writer *storage.Writer, message SinkMessage) err
 	return nil
 }
 
+// Close closes the GCS client
 func (g gcsClientGateway) Close() error {
 	return g.storageClient.Close()
 }
