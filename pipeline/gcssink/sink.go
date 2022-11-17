@@ -2,10 +2,12 @@ package gcssink
 
 import (
 	"context"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck/pipeline"
+	"github.com/googleapis/gax-go/v2"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -29,6 +31,8 @@ type gcsParallelWriter struct {
 	// configure the retry police for the GCS client. Storage sdk provides
 	// some functions to create the retrier config. See:
 	// https://pkg.go.dev/cloud.google.com/go/storage#RetryOption
+	// Implementation example:
+	// https://github.com/GoogleCloudPlatform/golang-samples/blob/main/storage/retry/configure_retries.go
 	retrierOption []storage.RetryOption
 }
 
@@ -126,5 +130,28 @@ func (w *gcsParallelWriter) Store(ctx context.Context, messages ...pipeline.Sink
 func panicToError(errChan *chan error) {
 	if r := recover(); r != nil {
 		*errChan <- errors.E(ErrPanic, CodePanic, errors.KV("panic", r))
+	}
+}
+
+// MakeRetrierOptions returns a []storage.RetryOption to allows users to configure non-default
+// retry behavior for API calls made to GCS.
+func MakeGcsRetrierOptions(
+	initialIntervalInSeconds int,
+	maxIntervalInSeconds int,
+	multiplier float64,
+	policy storage.RetryPolicy,
+) []storage.RetryOption {
+	bo := gax.Backoff{
+		Initial:    time.Duration(initialIntervalInSeconds) * time.Second,
+		Max:        time.Duration(maxIntervalInSeconds) * time.Second,
+		Multiplier: multiplier,
+	}
+	backoffConfig := storage.WithBackoff(bo)
+
+	retryPolicy := storage.WithPolicy(policy)
+
+	return []storage.RetryOption{
+		backoffConfig,
+		retryPolicy,
 	}
 }

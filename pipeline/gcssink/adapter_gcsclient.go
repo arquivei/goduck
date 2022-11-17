@@ -46,6 +46,8 @@ func (g gcsClientGateway) GetWriter(
 func (g gcsClientGateway) Write(writer *storage.Writer, message SinkMessage) error {
 	const op = errors.Op("gcssink.gcsClientGateway.Write")
 
+	writer.Metadata = message.Metadata
+
 	if _, err := writer.Write(message.Data); err != nil {
 		return errors.E(op, err, CodeFailedToWriteAtBucket, errors.KV("bucket", message.Bucket), errors.KV("path", message.StoragePath))
 	}
