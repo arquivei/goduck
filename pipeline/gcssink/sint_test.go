@@ -3,10 +3,12 @@ package gcssink
 import (
 	"context"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck/pipeline"
+	"github.com/googleapis/gax-go/v2"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -341,6 +343,55 @@ func TestPanicToError(t *testing.T) {
 			assert.EqualError(t, err, test.expectedError)
 			assert.Equal(t, test.expectedError, err.Error())
 
+		})
+	}
+}
+
+func TestMakeGcsRetrierOptions(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		initialIntervalInSeconds int
+		maxIntervalInSeconds     int
+		multiplier               float64
+		policy                   storage.RetryPolicy
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []storage.RetryOption
+	}{
+		{
+			name: "[SUCCESS] - should return retry options",
+			args: args{
+				initialIntervalInSeconds: 1,
+				maxIntervalInSeconds:     2,
+				multiplier:               3,
+				policy:                   storage.RetryAlways,
+			},
+			want: []storage.RetryOption{
+				storage.WithBackoff(
+					gax.Backoff{
+						Initial:    time.Duration(1) * time.Second,
+						Max:        time.Duration(2) * time.Second,
+						Multiplier: 3,
+					}),
+				storage.WithPolicy(storage.RetryAlways),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			assert.NotPanics(t, func() {
+
+				got := MakeGcsRetrierOptions(test.args.initialIntervalInSeconds, test.args.maxIntervalInSeconds, test.args.multiplier, test.args.policy)
+				assert.Equal(t, got, test.want)
+
+			})
 		})
 	}
 }
