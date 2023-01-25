@@ -3,7 +3,7 @@ module github.com/arquivei/goduck
 go 1.18
 
 require (
-	cloud.google.com/go/bigquery v1.44.0
+	cloud.google.com/go/bigquery v1.45.0
 	cloud.google.com/go/pubsub v1.28.0
 	github.com/Shopify/sarama v1.31.1
 	github.com/arquivei/foundationkit v0.0.0-20220110144844-8c4146ce8984
