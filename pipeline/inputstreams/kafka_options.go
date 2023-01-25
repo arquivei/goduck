@@ -3,7 +3,7 @@ package inputstreams
 import (
 	"strings"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 // KafkaOption configures the kafka provider.
