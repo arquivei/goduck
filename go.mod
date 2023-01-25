@@ -12,7 +12,7 @@ require (
 	github.com/imkira/go-observer v1.0.3
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/rs/zerolog v1.28.0
-	github.com/segmentio/kafka-go v0.4.28
+	github.com/segmentio/kafka-go v0.4.38
 	github.com/stretchr/testify v1.8.1
 )
 
@@ -64,7 +64,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/omeid/uconfig v1.2.0 // indirect
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
