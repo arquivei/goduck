@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/pubsub v1.28.0
 	github.com/Shopify/sarama v1.38.1
 	github.com/arquivei/foundationkit v0.0.0-20220110144844-8c4146ce8984
-	github.com/confluentinc/confluent-kafka-go v1.8.2
+	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/go-kit/kit v0.12.0
 	github.com/imkira/go-observer v1.0.3
 	github.com/olivere/elastic/v7 v7.0.32
