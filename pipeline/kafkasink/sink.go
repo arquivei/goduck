@@ -6,7 +6,7 @@ import (
 	"github.com/arquivei/goduck/pipeline"
 
 	"github.com/arquivei/foundationkit/errors"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 type kafkaPusher struct {

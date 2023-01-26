@@ -4,7 +4,7 @@ import (
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck"
 	"github.com/arquivei/goduck/impl/implstream/kafkaconfluent"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 type kafkaProvider struct {
