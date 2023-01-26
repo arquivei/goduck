@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/bigquery v1.45.0
 	cloud.google.com/go/pubsub v1.28.0
 	github.com/Shopify/sarama v1.38.1
-	github.com/arquivei/foundationkit v0.0.0-20220110144844-8c4146ce8984
+	github.com/arquivei/foundationkit v0.1.2
 	github.com/confluentinc/confluent-kafka-go/v2 v2.0.2
 	github.com/go-kit/kit v0.12.0
 	github.com/imkira/go-observer v1.0.3
@@ -33,8 +33,8 @@ require (
 	cloud.google.com/go/monitoring v1.8.0 // indirect
 	cloud.google.com/go/storage v1.29.0
 	cloud.google.com/go/trace v1.4.0 // indirect
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.10 // indirect
-	github.com/aws/aws-sdk-go v1.43.21 // indirect
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.11 // indirect
+	github.com/aws/aws-sdk-go v1.44.28 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -61,15 +61,15 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/omeid/uconfig v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.12.1 // indirect
-	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.32.1 // indirect
-	github.com/prometheus/procfs v0.7.3 // indirect
+	github.com/prometheus/client_golang v1.14.0 // indirect
+	github.com/prometheus/client_model v0.3.0 // indirect
+	github.com/prometheus/common v0.37.0 // indirect
+	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
