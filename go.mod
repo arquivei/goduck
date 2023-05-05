@@ -12,7 +12,7 @@ require (
 	github.com/imkira/go-observer v1.0.3
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/rs/zerolog v1.29.0
-	github.com/segmentio/kafka-go v0.4.39
+	github.com/segmentio/kafka-go v0.4.40
 	github.com/stretchr/testify v1.8.2
 )
 
