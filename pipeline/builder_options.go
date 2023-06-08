@@ -14,6 +14,9 @@ type pipelineBuilderOptions struct {
 	// endpoint that executes the main business logic
 	endpoint endpoint.Endpoint
 
+	// engineType determines the type of engine to be used
+	engineType string
+
 	// GoDuck configuration:
 	//
 	// inputStreams are the message sources

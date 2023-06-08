@@ -33,6 +33,7 @@ func WithConfig(userConfig Config) Option {
 		withMessagePoolConfig(userConfig.MessagePool)(c)
 
 		c.middlewares = append(c.middlewares, getMiddlewares(userConfig)...)
+		c.engineType = userConfig.EngineType
 	}
 }
 

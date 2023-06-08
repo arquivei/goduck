@@ -7,11 +7,16 @@ import (
 	"github.com/arquivei/goduck/impl/implqueue/pubsubqueue"
 )
 
+const (
+	EngineTypeRunOnce = "run_once_engine"
+)
+
 // Config contains the parameters for a general purpose pipeline. This
 // should be set by the user that is running the pipeline.
 // This goes nicely with app.SetupConfig().
 type Config struct {
 	SystemName  string
+	EngineType  string
 	InputStream struct {
 		Provider string
 		Kafka    struct {
