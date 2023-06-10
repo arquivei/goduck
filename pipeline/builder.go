@@ -13,9 +13,9 @@ import (
 	"github.com/arquivei/foundationkit/gokitmiddlewares/stalemiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/timeoutmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/trackingmiddleware"
+	"github.com/arquivei/goduck/engine/batchengine"
 	"github.com/arquivei/goduck/engine/batchstreamengine"
 	"github.com/arquivei/goduck/engine/jobpoolengine"
-	"github.com/arquivei/goduck/engine/runoncenegine"
 	"github.com/arquivei/goduck/engine/streamengine"
 	"github.com/arquivei/goduck/gokithelper"
 	"github.com/go-kit/kit/endpoint"
@@ -171,7 +171,7 @@ func buildWithRunOnceEngine(internalConfig pipelineBuilderOptions, pipe *pipelin
 		)
 	}
 
-	pipe.engine = runoncenegine.New(
+	pipe.engine = batchengine.New(
 		processor,
 		internalConfig.batchSize,
 		internalConfig.maxTimeout,

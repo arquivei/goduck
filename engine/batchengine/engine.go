@@ -1,4 +1,4 @@
-package runoncenegine
+package batchengine
 
 import (
 	"context"
@@ -12,15 +12,14 @@ import (
 	"github.com/go-kit/kit/endpoint"
 )
 
-// RunOnceEngine is an engine that processes a batch of messages only once and
+// BatchEngine is an engine that processes a batch of messages only once and
 // then shuts down
-type RunOnceEngine struct {
+type BatchEngine struct {
 	stream         goduck.Stream
 	maxBatchSize   int
 	maxTimeout     time.Duration
 	batchProcessor goduck.BatchProcessor
 
-	cancelFn       func()
 	processorError error
 }
 
@@ -31,7 +30,7 @@ func NewFromEndpoint(
 	maxBatchSize int,
 	maxTimeout time.Duration,
 	stream goduck.Stream,
-) *RunOnceEngine {
+) *BatchEngine {
 	return New(
 		gokithelper.MustNewEndpointBatchProcessor(e, decoder),
 		maxBatchSize,
@@ -40,14 +39,14 @@ func NewFromEndpoint(
 	)
 }
 
-// New creates a new RunOnceEngine.
+// New creates a new BatchEngine.
 func New(
 	processor goduck.BatchProcessor,
 	maxBatchSize int,
 	maxTimeout time.Duration,
 	stream goduck.Stream,
-) *RunOnceEngine {
-	engine := &RunOnceEngine{
+) *BatchEngine {
+	engine := &BatchEngine{
 		stream:         stream,
 		batchProcessor: processor,
 		maxBatchSize:   maxBatchSize,
@@ -58,12 +57,12 @@ func New(
 }
 
 // Run processes the messages and then closes
-func (e *RunOnceEngine) Run(ctx context.Context) error {
+func (e *BatchEngine) Run(ctx context.Context) error {
 	e.pollMessages(ctx, e.stream)
 	return e.processorError
 }
 
-func (e *RunOnceEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
+func (e *BatchEngine) pollMessages(ctx context.Context, stream goduck.Stream) {
 	msgs, _ := e.pollMessagesBatch(ctx, stream)
 
 	if len(msgs) > 0 {
@@ -71,7 +70,7 @@ func (e *RunOnceEngine) pollMessages(ctx context.Context, stream goduck.Stream) 
 	}
 }
 
-func (e *RunOnceEngine) pollMessagesBatch(ctx context.Context, stream goduck.Stream) ([]goduck.RawMessage, error) {
+func (e *BatchEngine) pollMessagesBatch(ctx context.Context, stream goduck.Stream) ([]goduck.RawMessage, error) {
 	msgs := []goduck.RawMessage{}
 	var cancelFn context.CancelFunc
 	if e.maxTimeout > 0 {
@@ -92,7 +91,7 @@ func (e *RunOnceEngine) pollMessagesBatch(ctx context.Context, stream goduck.Str
 	return msgs, nil
 }
 
-func (e *RunOnceEngine) handleMessages(ctx context.Context, stream goduck.Stream, msgs []goduck.RawMessage) {
+func (e *BatchEngine) handleMessages(ctx context.Context, stream goduck.Stream, msgs []goduck.RawMessage) {
 	msgBytes := make([][]byte, len(msgs))
 	for i, msg := range msgs {
 		msgBytes[i] = msg.Bytes()
@@ -109,6 +108,6 @@ func (e *RunOnceEngine) handleMessages(ctx context.Context, stream goduck.Stream
 	stream.Done(ctx)
 }
 
-func (e *RunOnceEngine) selfClose(err error) {
+func (e *BatchEngine) selfClose(err error) {
 	e.processorError = err
 }

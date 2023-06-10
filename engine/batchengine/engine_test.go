@@ -1,11 +1,11 @@
-package runoncenegine_test
+package batchengine_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/arquivei/goduck/engine/runoncenegine"
+	"github.com/arquivei/goduck/engine/batchengine"
 	"github.com/arquivei/goduck/impl/implprocessor"
 	"github.com/arquivei/goduck/impl/implstream"
 
@@ -20,7 +20,7 @@ func TestStream(t *testing.T) {
 		stream.Close()
 	}()
 
-	w := runoncenegine.New(processor, 101, 100*time.Millisecond, stream)
+	w := batchengine.New(processor, 101, 100*time.Millisecond, stream)
 	err := w.Run(context.Background())
 	assert.NoError(t, err)
 
@@ -35,7 +35,7 @@ func TestStreamNoTimeout(t *testing.T) {
 		stream.Close()
 	}()
 
-	w := runoncenegine.New(processor, 15, 0, stream)
+	w := batchengine.New(processor, 15, 0, stream)
 	err := w.Run(context.Background())
 	assert.NoError(t, err)
 
@@ -57,7 +57,7 @@ func TestStreamCancel(t *testing.T) {
 	}()
 
 	ctx, cancelFn := context.WithCancel(context.Background())
-	w := runoncenegine.New(processor, 10, 100*time.Millisecond, stream)
+	w := batchengine.New(processor, 10, 100*time.Millisecond, stream)
 	go func() {
 		w.Run(ctx)
 		close(done)
@@ -82,7 +82,7 @@ func TestStreamFatal(t *testing.T) {
 		stream.Close()
 	}()
 
-	w := runoncenegine.New(processor, 10, 100*time.Millisecond, stream)
+	w := batchengine.New(processor, 10, 100*time.Millisecond, stream)
 	err := w.Run(context.Background())
 	assert.Equal(t, expectedErr, err)
 }
