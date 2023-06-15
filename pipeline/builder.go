@@ -13,6 +13,7 @@ import (
 	"github.com/arquivei/foundationkit/gokitmiddlewares/stalemiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/timeoutmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/trackingmiddleware"
+	"github.com/arquivei/goduck/engine/batchengine"
 	"github.com/arquivei/goduck/engine/batchstreamengine"
 	"github.com/arquivei/goduck/engine/jobpoolengine"
 	"github.com/arquivei/goduck/engine/streamengine"
@@ -38,6 +39,8 @@ func build(c pipelineBuilderOptions) (Pipeline, error) {
 	}
 
 	switch {
+	case shouldBuildWithRunOnceEngine(c):
+		err = buildWithRunOnceEngine(c, p)
 	case shouldBuildWithMessagePoolEngine(c) && shouldBuildWithSomeStreamEngine(c):
 		// sanity check
 		// This is already checked by checkPipelineBuilderOptions()
@@ -65,6 +68,10 @@ func shouldBuildWithMessagePoolEngine(c pipelineBuilderOptions) bool {
 
 func shouldBuildWithSomeStreamEngine(c pipelineBuilderOptions) bool {
 	return len(c.inputStreams) > 0
+}
+
+func shouldBuildWithRunOnceEngine(c pipelineBuilderOptions) bool {
+	return c.engineType == EngineTypeRunOnce
 }
 
 func buildWithBachStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
@@ -141,6 +148,34 @@ func buildWithMessagePoolEngine(builderOpts pipelineBuilderOptions, pipe *pipeli
 		builderOpts.messagePool,
 		processor,
 		builderOpts.nPoolWorkers,
+	)
+	return nil
+}
+
+func buildWithRunOnceEngine(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
+	processor, err := gokithelper.NewEndpointBatchProcessor(
+		internalConfig.endpoint,
+		internalConfig.batchDecoder,
+	)
+	if err != nil {
+		return err
+	}
+
+	if internalConfig.dlq.brokers != nil {
+		processor = dlqmiddleware.WrapBatch(
+			processor,
+			internalConfig.dlq.brokers,
+			internalConfig.dlq.topic,
+			internalConfig.dlq.username,
+			internalConfig.dlq.password,
+		)
+	}
+
+	pipe.engine = batchengine.New(
+		processor,
+		internalConfig.batchSize,
+		internalConfig.maxTimeout,
+		internalConfig.inputStreams[0],
 	)
 	return nil
 }
