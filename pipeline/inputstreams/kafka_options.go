@@ -52,6 +52,16 @@ func WithKafkaSaslPlainAuthentication(username, password string) KafkaOption {
 	}
 }
 
+// WithKafkaPlaintextAuthentication configures kafka plaintext authentication.
+func WithKafkaPlaintextAuthentication(username, password string) KafkaOption {
+	return func(kp *kafkaProvider) {
+		kp.configMap["security.protocol"] = "PLAINTEXT"
+		kp.configMap["sasl.mechanisms"] = "PLAIN"
+		kp.configMap["sasl.username"] = username
+		kp.configMap["sasl.password"] = password
+	}
+}
+
 // WithKafkaBrokers sets the kafka topics for the input stream.
 func WithKafkaBrokers(brokers ...string) KafkaOption {
 	return func(kp *kafkaProvider) {
