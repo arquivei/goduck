@@ -39,6 +39,13 @@ type Config struct {
 		Username string
 		Password string `secret:"true"`
 	}
+	Backoffmiddleware struct {
+		InitialDelay time.Duration `default:"200ms"`
+		MaxDelay     time.Duration `default:"10s"`
+		Spread       float64       `default:"0.2"`
+		Factor       float64       `default:"1.5"`
+		MaxRetries   int           `default:"-1"`
+	}
 }
 
 // MessagePoolConfig contains parameters for configuring a Message

@@ -186,13 +186,13 @@ func getMiddlewares(config Config) []endpoint.Middleware {
 		Wait:          true,
 		ErrorSeverity: errors.SeverityFatal,
 	}
-	retryConfig := backoffmiddleware.NewDefaultConfig()
+	retryBackoffConfig := withBackoffmiddlewareConfig(config)
 	loggingConfig := loggingmiddleware.NewDefaultConfig(config.SystemName)
 
 	e := []endpoint.Middleware{
 		trackingmiddleware.New(),
 		gokitmiddlewares.Must(timeoutmiddleware.New(timeoutConfig)),
-		backoffmiddleware.New(retryConfig),
+		backoffmiddleware.New(retryBackoffConfig),
 		loggingmiddleware.MustNew(loggingConfig),
 	}
 	if config.StaleAfter > 0 {
@@ -201,5 +201,23 @@ func getMiddlewares(config Config) []endpoint.Middleware {
 		e = append(e, stalemiddleware.New(c))
 		log.Warn().Msgf("[goduck][pipeline] Stale middleware is active. The system will be set to unhealthy if no message is received in %s.", config.StaleAfter.String())
 	}
+
+	if config.InputStream.DLQKafkaTopic != "" && config.Backoffmiddleware.MaxRetries == backoffmiddleware.MaxRetriesInfinite {
+		log.Warn().Msgf("[goduck][pipeline] DLQ is active but max retries is set as infinite. This may cause a infinite loop if the returned service error with wrigth severity was not SeverityInput type.")
+	}
+
 	return e
+}
+
+// withBackoffmiddlewareConfig returns a backoffmiddleware.Config with the values
+// from the Config struct. If the values are not set, the default values are used.
+// It will be used to create the backoffmiddleware.
+func withBackoffmiddlewareConfig(config Config) backoffmiddleware.Config {
+	return backoffmiddleware.Config{
+		InitialDelay: config.Backoffmiddleware.InitialDelay,
+		MaxDelay:     config.Backoffmiddleware.MaxDelay,
+		Spread:       config.Backoffmiddleware.Spread,
+		Factor:       config.Backoffmiddleware.Factor,
+		MaxRetries:   config.Backoffmiddleware.MaxRetries,
+	}
 }
