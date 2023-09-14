@@ -62,5 +62,10 @@ func checkConfig(config *Config) error {
 	if config.SystemName == "" {
 		return errors.E(op, ErrSystemNameEmpty)
 	}
+
+	if config.InputStream.DLQKafkaTopic != "" && config.Backoffmiddleware.MaxRetries == -1 {
+		return errors.E(op, ErrInfiniteBehavior)
+	}
+
 	return nil
 }
