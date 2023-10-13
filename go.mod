@@ -3,16 +3,16 @@ module github.com/arquivei/goduck
 go 1.20
 
 require (
-	cloud.google.com/go/bigquery v1.51.2
-	cloud.google.com/go/pubsub v1.31.0
-	github.com/Shopify/sarama v1.38.1
-	github.com/arquivei/foundationkit v0.3.4
-	github.com/confluentinc/confluent-kafka-go/v2 v2.1.1
-	github.com/go-kit/kit v0.12.0
+	cloud.google.com/go/bigquery v1.56.0
+	cloud.google.com/go/pubsub v1.33.0
+	github.com/Shopify/sarama v1.41.2
+	github.com/arquivei/foundationkit v0.4.2
+	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
+	github.com/go-kit/kit v0.13.0
 	github.com/imkira/go-observer v1.0.3
 	github.com/olivere/elastic/v7 v7.0.32
-	github.com/rs/zerolog v1.29.1
-	github.com/segmentio/kafka-go v0.4.40
+	github.com/rs/zerolog v1.31.0
+	github.com/segmentio/kafka-go v0.4.44
 	github.com/stretchr/testify v1.8.4
 )
 
@@ -49,7 +49,7 @@ require (
 	cloud.google.com/go/iam v1.1.0 // indirect
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/monitoring v1.15.0 // indirect
-	cloud.google.com/go/storage v1.30.1
+	cloud.google.com/go/storage v1.33.0
 	cloud.google.com/go/trace v1.10.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect
 	github.com/aws/aws-sdk-go v1.44.276 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.11.0
+	github.com/googleapis/gax-go/v2 v2.12.0
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -93,7 +93,7 @@ require (
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
