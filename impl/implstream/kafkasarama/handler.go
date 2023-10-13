@@ -6,7 +6,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/imkira/go-observer"
 	"github.com/rs/zerolog/log"
