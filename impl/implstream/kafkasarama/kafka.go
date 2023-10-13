@@ -3,7 +3,7 @@ package kafkasarama
 import (
 	"context"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/rs/zerolog/log"
 
