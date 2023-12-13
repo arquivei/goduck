@@ -24,4 +24,7 @@ var (
 	ErrSinkEncoderNil = errors.New("sink encoder is nil")
 	// ErrSystemNameEmpty is an error returned when the system name is empty.
 	ErrSystemNameEmpty = errors.New("system name is empty")
+	// ErrInfiniteBehavior is an error returned when the DLQ is active but max retries is set as infinite.
+	// This may cause an infinite loop if the returned service error with wright severity was not SeverityInput type.
+	ErrInfiniteBehavior = errors.New("DLQ is active but max retries is set as infinite")
 )
