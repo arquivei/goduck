@@ -24,7 +24,7 @@ jobs:
         go-version: 'stable'
     - uses: actions/checkout@v4
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v4
       with:
         version: latest
         args: --timeout 3m
