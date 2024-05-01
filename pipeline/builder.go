@@ -90,6 +90,7 @@ func buildWithBachStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipe
 			internalConfig.dlq.topic,
 			internalConfig.dlq.username,
 			internalConfig.dlq.password,
+			internalConfig.dlq.isNoop,
 		)
 	}
 
@@ -125,6 +126,7 @@ func buildWithStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) e
 			builderOpts.dlq.topic,
 			builderOpts.dlq.username,
 			builderOpts.dlq.password,
+			builderOpts.dlq.isNoop,
 		)
 	}
 
@@ -168,6 +170,7 @@ func buildWithRunOnceEngine(internalConfig pipelineBuilderOptions, pipe *pipelin
 			internalConfig.dlq.topic,
 			internalConfig.dlq.username,
 			internalConfig.dlq.password,
+			internalConfig.dlq.isNoop,
 		)
 	}
 

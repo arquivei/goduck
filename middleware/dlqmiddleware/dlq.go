@@ -17,6 +17,7 @@ type dlqMiddleware struct {
 	nextSingle    goduck.Processor
 	topic         string
 	kafkaProducer *kafka.Producer
+	isNoop        bool
 }
 
 // WrapBatch wraps @next with a middleware that redirect any failed messages
@@ -25,8 +26,9 @@ func WrapBatch(
 	next goduck.BatchProcessor,
 	brokers []string,
 	topic, username, password string,
+	isNoop bool,
 ) goduck.BatchProcessor {
-	return wrap(next, nil, brokers, topic, username, password)
+	return wrap(next, nil, brokers, topic, username, password, isNoop)
 }
 
 // WrapSingle wraps @next with a middleware that redirect any failed messages
@@ -35,8 +37,9 @@ func WrapSingle(
 	next goduck.Processor,
 	brokers []string,
 	topic, username, password string,
+	isNoop bool,
 ) goduck.Processor {
-	return wrap(nil, next, brokers, topic, username, password)
+	return wrap(nil, next, brokers, topic, username, password, isNoop)
 }
 
 func wrap(
@@ -44,7 +47,51 @@ func wrap(
 	nextSingle goduck.Processor,
 	brokers []string,
 	topic, username, password string,
+	isNoop bool,
 ) goduck.AnyProcessor {
+	var err error
+	var kafkaProducer *kafka.Producer
+
+	if !isNoop {
+		checkProcessorParams(brokers, topic, username, password)
+
+		kafkaProducer, err = kafka.NewProducer(&kafka.ConfigMap{
+			"bootstrap.servers": strings.Join(brokers, ","),
+			"security.protocol": "sasl_plaintext",
+			"sasl.mechanisms":   "PLAIN",
+			"sasl.username":     username,
+			"sasl.password":     password,
+			"compression.codec": "gzip",
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		// TODO: This should be configured.
+		app.RegisterShutdownHandler(&app.ShutdownHandler{
+			Name: "goduck_middleware_kafka_dlq",
+			Handler: func(ctx context.Context) error {
+				kafkaProducer.Close()
+				return nil
+			},
+		})
+	}
+
+	return dlqMiddleware{
+		nextBatch:     nextBatch,
+		nextSingle:    nextSingle,
+		kafkaProducer: kafkaProducer,
+		topic:         topic,
+		isNoop:        isNoop,
+	}
+}
+
+func checkProcessorParams(
+	brokers []string,
+	topic string,
+	username string,
+	password string,
+) {
 	if len(brokers) == 0 {
 		panic("empty kafka brokers")
 	}
@@ -54,34 +101,6 @@ func wrap(
 
 	if username == "" || password == "" {
 		panic("kafka username/password are mandatory")
-	}
-
-	kafkaProducer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": strings.Join(brokers, ","),
-		"security.protocol": "sasl_plaintext",
-		"sasl.mechanisms":   "PLAIN",
-		"sasl.username":     username,
-		"sasl.password":     password,
-		"compression.codec": "gzip",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	// TODO: This should be configured.
-	app.RegisterShutdownHandler(&app.ShutdownHandler{
-		Name: "goduck_middleware_kafka_dlq",
-		Handler: func(ctx context.Context) error {
-			kafkaProducer.Close()
-			return nil
-		},
-	})
-
-	return dlqMiddleware{
-		nextBatch:     nextBatch,
-		nextSingle:    nextSingle,
-		kafkaProducer: kafkaProducer,
-		topic:         topic,
 	}
 }
 
@@ -126,6 +145,14 @@ func (m dlqMiddleware) Process(ctx context.Context, message []byte) error {
 
 	if ctx.Err() != nil {
 		return ctx.Err()
+	}
+
+	if m.isNoop {
+		log.Info().
+			Err(err).
+			Msg("Not sending message batch to dlq since DLQ is configured as noop")
+
+		return nil
 	}
 
 	log.Error().

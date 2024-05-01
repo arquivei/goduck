@@ -31,6 +31,7 @@ type Config struct {
 		ProcessingTimeoutMilli int `default:"60000"`
 		MaxProcessingRetries   int `default:"10"`
 		DLQKafkaTopic          string
+		NoopDLQ                bool `default:"false"`
 	}
 	MessagePool MessagePoolConfig
 	StaleAfter  time.Duration

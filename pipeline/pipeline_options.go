@@ -30,6 +30,8 @@ func WithConfig(userConfig Config) Option {
 			c.dlq.password = userConfig.Kafka.Password
 		}
 
+		c.dlq.isNoop = userConfig.InputStream.NoopDLQ
+
 		withMessagePoolConfig(userConfig.MessagePool)(c)
 
 		c.middlewares = append(c.middlewares, getMiddlewares(userConfig)...)

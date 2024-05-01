@@ -55,6 +55,7 @@ type pipelineBuilderOptions struct {
 		topic    string
 		username string
 		password string
+		isNoop   bool
 	}
 
 	middlewares []endpoint.Middleware
@@ -95,7 +96,7 @@ func checkPipelineBuilderOptions(c pipelineBuilderOptions) error {
 		return errors.E(op, ErrSinkEncoderNil)
 	}
 
-	if c.dlq.brokers == nil {
+	if c.dlq.brokers == nil && !c.dlq.isNoop {
 		log.Warn().Msg("[goduck][pipeline] No DLQ Topic is set, all messages will be retried indefinitely.")
 	}
 	return nil
