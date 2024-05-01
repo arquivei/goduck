@@ -119,6 +119,14 @@ func (m dlqMiddleware) BatchProcess(ctx context.Context, messages [][]byte) erro
 		return ctx.Err()
 	}
 
+	if m.isNoop {
+		log.Info().
+			Err(err).
+			Msg("Not sending message batch to dlq since DLQ is configured as noop")
+
+		return nil
+	}
+
 	log.Error().
 		Err(err).
 		Int("size", len(messages)).

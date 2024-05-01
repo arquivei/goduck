@@ -83,7 +83,7 @@ func buildWithBachStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipe
 		return err
 	}
 
-	if internalConfig.dlq.brokers != nil {
+	if internalConfig.dlq.brokers != nil || internalConfig.dlq.isNoop {
 		processor = dlqmiddleware.WrapBatch(
 			processor,
 			internalConfig.dlq.brokers,
@@ -119,7 +119,7 @@ func buildWithStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) e
 		return err
 	}
 
-	if builderOpts.dlq.brokers != nil {
+	if builderOpts.dlq.brokers != nil || builderOpts.dlq.isNoop {
 		processor = dlqmiddleware.WrapSingle(
 			processor,
 			builderOpts.dlq.brokers,
@@ -163,7 +163,7 @@ func buildWithRunOnceEngine(internalConfig pipelineBuilderOptions, pipe *pipelin
 		return err
 	}
 
-	if internalConfig.dlq.brokers != nil {
+	if internalConfig.dlq.brokers != nil || internalConfig.dlq.isNoop {
 		processor = dlqmiddleware.WrapBatch(
 			processor,
 			internalConfig.dlq.brokers,
