@@ -13,13 +13,14 @@ import (
 	"github.com/arquivei/foundationkit/gokitmiddlewares/stalemiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/timeoutmiddleware"
 	"github.com/arquivei/foundationkit/gokitmiddlewares/trackingmiddleware"
+	"github.com/go-kit/kit/endpoint"
+	"github.com/rs/zerolog/log"
+
 	"github.com/arquivei/goduck/engine/batchengine"
 	"github.com/arquivei/goduck/engine/batchstreamengine"
 	"github.com/arquivei/goduck/engine/jobpoolengine"
 	"github.com/arquivei/goduck/engine/streamengine"
 	"github.com/arquivei/goduck/gokithelper"
-	"github.com/go-kit/kit/endpoint"
-	"github.com/rs/zerolog/log"
 )
 
 func build(c pipelineBuilderOptions) (Pipeline, error) {
@@ -74,13 +75,19 @@ func shouldBuildWithRunOnceEngine(c pipelineBuilderOptions) bool {
 	return c.engineType == EngineTypeRunOnce
 }
 
-func buildWithBachStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
-	processor, err := gokithelper.NewEndpointBatchProcessor(
-		internalConfig.endpoint,
-		internalConfig.batchDecoder,
-	)
-	if err != nil {
-		return err
+func buildWithBatchStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
+	processor := internalConfig.batchProcessor
+
+	if processor == nil {
+		var err error
+
+		processor, err = gokithelper.NewEndpointBatchProcessor(
+			internalConfig.endpoint,
+			internalConfig.batchDecoder,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	if internalConfig.dlq.brokers != nil {
@@ -104,18 +111,23 @@ func buildWithBachStreamEngine(internalConfig pipelineBuilderOptions, pipe *pipe
 
 func buildWithSomeStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
 	if builderOpts.batchDecoder != nil {
-		return buildWithBachStreamEngine(builderOpts, pipe)
+		return buildWithBatchStreamEngine(builderOpts, pipe)
 	}
 	return buildWithStreamEngine(builderOpts, pipe)
 }
 
 func buildWithStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
-	processor, err := gokithelper.NewEndpointProcessor(
-		builderOpts.endpoint,
-		builderOpts.decoder,
-	)
-	if err != nil {
-		return err
+	processor := builderOpts.processor
+
+	if processor == nil {
+		var err error
+		processor, err = gokithelper.NewEndpointProcessor(
+			builderOpts.endpoint,
+			builderOpts.decoder,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	if builderOpts.dlq.brokers != nil {
@@ -136,12 +148,17 @@ func buildWithStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) e
 }
 
 func buildWithMessagePoolEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) error {
-	processor, err := gokithelper.NewEndpointProcessor(
-		builderOpts.endpoint,
-		builderOpts.decoder,
-	)
-	if err != nil {
-		return err
+	processor := builderOpts.processor
+
+	if processor == nil {
+		var err error
+		processor, err = gokithelper.NewEndpointProcessor(
+			builderOpts.endpoint,
+			builderOpts.decoder,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	pipe.engine = jobpoolengine.New(
@@ -153,12 +170,18 @@ func buildWithMessagePoolEngine(builderOpts pipelineBuilderOptions, pipe *pipeli
 }
 
 func buildWithRunOnceEngine(internalConfig pipelineBuilderOptions, pipe *pipeline) error {
-	processor, err := gokithelper.NewEndpointBatchProcessor(
-		internalConfig.endpoint,
-		internalConfig.batchDecoder,
-	)
-	if err != nil {
-		return err
+	processor := internalConfig.batchProcessor
+
+	if processor == nil {
+		var err error
+
+		processor, err = gokithelper.NewEndpointBatchProcessor(
+			internalConfig.endpoint,
+			internalConfig.batchDecoder,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	if internalConfig.dlq.brokers != nil {
