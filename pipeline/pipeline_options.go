@@ -4,9 +4,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-kit/kit/endpoint"
+
 	"github.com/arquivei/goduck"
 	"github.com/arquivei/goduck/impl/implqueue/pubsubqueue"
-	"github.com/go-kit/kit/endpoint"
 )
 
 // Option applies an option to the Config struct
@@ -48,6 +49,20 @@ func WithEndpoint(e endpoint.Endpoint) Option {
 func WithInputStreams(s ...goduck.Stream) Option {
 	return func(c *pipelineBuilderOptions) {
 		c.inputStreams = s
+	}
+}
+
+// WithProcessor adds a processor to the config struct
+func WithProcessor(p goduck.Processor) Option {
+	return func(c *pipelineBuilderOptions) {
+		c.processor = p
+	}
+}
+
+// WithBatchProcessor adds a batchProcessor to the config struct
+func WithBatchProcessor(p goduck.BatchProcessor) Option {
+	return func(c *pipelineBuilderOptions) {
+		c.batchProcessor = p
 	}
 }
 

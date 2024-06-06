@@ -4,9 +4,10 @@ import (
 	"time"
 
 	"github.com/arquivei/foundationkit/errors"
-	"github.com/arquivei/goduck"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/rs/zerolog/log"
+
+	"github.com/arquivei/goduck"
 )
 
 // pipelineBuilderOptions is the configuration of a pipeline.
@@ -58,6 +59,12 @@ type pipelineBuilderOptions struct {
 	}
 
 	middlewares []endpoint.Middleware
+
+	// processor is a processor that overrides the default one
+	processor goduck.Processor
+
+	// batchProcessor is a batchProcessor that overrides the default one
+	batchProcessor goduck.BatchProcessor
 }
 
 func checkPipelineBuilderOptions(c pipelineBuilderOptions) error {
