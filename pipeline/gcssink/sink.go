@@ -87,7 +87,6 @@ func (w *gcsParallelWriter) Store(ctx context.Context, messages ...pipeline.Sink
 	errChan := make(chan error, len(messages))
 
 	for _, message := range messages {
-		message := message
 		g.Go(func() error {
 			defer panicToError(&errChan)
 

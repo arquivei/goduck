@@ -19,7 +19,7 @@ linters:
     # - depguard      # Go linter that checks if package imports are in a list of acceptable packages
     - bodyclose     # checks whether HTTP response body is closed successfully
     - dupl          # Tool for code clone detection
-    - exportloopref # checks for pointers to enclosing loop variables
+    - copyloopvar   # checks for pointers to enclosing loop variables
     - goconst       # Finds repeated strings that could be replaced by a constant
     - gocyclo       # Computes and checks the cyclomatic complexity of functions
     - gofmt         # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification

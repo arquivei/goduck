@@ -86,7 +86,6 @@ func TestMustNewParallel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			gateway := test.args.clientGateway(t)
 			if test.wantPanic {
@@ -260,7 +259,6 @@ func TestStore(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			assert.NotPanics(t, func() {
@@ -326,7 +324,6 @@ func TestPanicToError(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			gateway := NewMockGcsClientGateway(t)
@@ -383,7 +380,6 @@ func TestMakeGcsRetrierOptions(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			assert.NotPanics(t, func() {
