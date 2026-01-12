@@ -62,6 +62,17 @@ func WithKafkaPlaintextAuthentication(username, password string) KafkaOption {
 	}
 }
 
+// WithKafkaSSLAuthentication configures kafka SSL authentication.
+func WithKafkaSSLAuthentication(username, password, certPath string) KafkaOption {
+	return func(kp *kafkaProvider) {
+		kp.configMap["security.protocol"] = "sasl_ssl"
+		kp.configMap["sasl.mechanisms"] = "PLAIN"
+		kp.configMap["sasl.username"] = username
+		kp.configMap["sasl.password"] = password
+		kp.configMap["ssl.ca.location"] = certPath
+	}
+}
+
 // WithKafkaBrokers sets the kafka topics for the input stream.
 func WithKafkaBrokers(brokers ...string) KafkaOption {
 	return func(kp *kafkaProvider) {
