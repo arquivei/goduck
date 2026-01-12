@@ -58,6 +58,20 @@ func TestWithKafkaSaslPlainAuthentication(t *testing.T) {
 	assert.Equal(t, "pass", k.configMap["sasl.password"])
 }
 
+func TestWithKafkaSSLAuthentication(t *testing.T) {
+	k := kafkaProvider{
+		configMap: kafka.ConfigMap{},
+	}
+
+	WithKafkaSSLAuthentication("user", "pass", "cert_path")(&k)
+
+	assert.Equal(t, "sasl_ssl", k.configMap["security.protocol"])
+	assert.Equal(t, "PLAIN", k.configMap["sasl.mechanisms"])
+	assert.Equal(t, "user", k.configMap["sasl.username"])
+	assert.Equal(t, "pass", k.configMap["sasl.password"])
+	assert.Equal(t, "cert_path", k.configMap["ssl.ca.location"])
+}
+
 func TestWithKafkaBrokers(t *testing.T) {
 	k := kafkaProvider{
 		configMap: kafka.ConfigMap{},

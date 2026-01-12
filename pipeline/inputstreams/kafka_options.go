@@ -6,6 +6,13 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+const (
+	saslPlaintext = "sasl_plaintext"
+	plaintext     = "PLAINTEXT"
+	saslSsl       = "sasl_ssl"
+	plain         = "PLAIN"
+)
+
 // KafkaOption configures the kafka provider.
 type KafkaOption func(*kafkaProvider)
 
@@ -45,8 +52,8 @@ func WithKafkaConfigValue(name string, value kafka.ConfigValue) KafkaOption {
 // WithKafkaSaslPlainAuthentication configures kafka sasl authentication.
 func WithKafkaSaslPlainAuthentication(username, password string) KafkaOption {
 	return func(kp *kafkaProvider) {
-		kp.configMap["security.protocol"] = "sasl_plaintext"
-		kp.configMap["sasl.mechanisms"] = "PLAIN"
+		kp.configMap["security.protocol"] = saslPlaintext
+		kp.configMap["sasl.mechanisms"] = plain
 		kp.configMap["sasl.username"] = username
 		kp.configMap["sasl.password"] = password
 	}
@@ -55,8 +62,8 @@ func WithKafkaSaslPlainAuthentication(username, password string) KafkaOption {
 // WithKafkaPlaintextAuthentication configures kafka plaintext authentication.
 func WithKafkaPlaintextAuthentication(username, password string) KafkaOption {
 	return func(kp *kafkaProvider) {
-		kp.configMap["security.protocol"] = "PLAINTEXT"
-		kp.configMap["sasl.mechanisms"] = "PLAIN"
+		kp.configMap["security.protocol"] = plaintext
+		kp.configMap["sasl.mechanisms"] = plain
 		kp.configMap["sasl.username"] = username
 		kp.configMap["sasl.password"] = password
 	}
@@ -65,8 +72,8 @@ func WithKafkaPlaintextAuthentication(username, password string) KafkaOption {
 // WithKafkaSSLAuthentication configures kafka SSL authentication.
 func WithKafkaSSLAuthentication(username, password, certPath string) KafkaOption {
 	return func(kp *kafkaProvider) {
-		kp.configMap["security.protocol"] = "sasl_ssl"
-		kp.configMap["sasl.mechanisms"] = "PLAIN"
+		kp.configMap["security.protocol"] = saslSsl
+		kp.configMap["sasl.mechanisms"] = plain
 		kp.configMap["sasl.username"] = username
 		kp.configMap["sasl.password"] = password
 		kp.configMap["ssl.ca.location"] = certPath
