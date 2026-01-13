@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	cloud.google.com/go/bigquery v1.65.0
-	cloud.google.com/go/pubsub v1.45.3
+	cloud.google.com/go/pubsub/v2 v2.3.0
 	github.com/IBM/sarama v1.45.0
 	github.com/arquivei/foundationkit v0.10.2
 	github.com/confluentinc/confluent-kafka-go/v2 v2.8.0
