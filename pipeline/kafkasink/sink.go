@@ -21,19 +21,26 @@ type SinkMessage struct {
 }
 
 // MustNew creates a new pipeline sink that saves messages to kafka
-func MustNew(
-	brokers string,
-	username string,
-	password string,
-) (pipeline.Sink, func()) {
+func MustNew(brokers, username, password string) (pipeline.Sink, func()) {
+	return MustNewWithAuth(brokers, username, password, "", "sasl_plaintext")
+}
+
+// MustNewWithAuth creates a new pipeline sink that saves messages to kafka
+func MustNewWithAuth(brokers, username, password, certPath, securityProtocol string) (pipeline.Sink, func()) {
 	if brokers == "" {
 		panic("missing kafka brokers")
 	}
+
 	if username == "" {
 		panic("missing kafka username")
 	}
+
 	if password == "" {
 		panic("missing kafka password")
+	}
+
+	if securityProtocol == "sasl_ssl" && certPath == "" {
+		panic("missing kafka cert path")
 	}
 
 	configs := &kafka.ConfigMap{
@@ -43,12 +50,15 @@ func MustNew(
 		"sasl.mechanisms":   "PLAIN",
 		"sasl.password":     password,
 		"sasl.username":     username,
-		"security.protocol": "sasl_plaintext",
+		"security.protocol": securityProtocol,
+		"ssl.ca.location":   certPath,
 	}
+
 	producer, err := kafka.NewProducer(configs)
 	if err != nil {
 		panic(err)
 	}
+
 	pusher := &kafkaPusher{
 		producer: producer,
 	}
@@ -56,6 +66,7 @@ func MustNew(
 	closeFn := func() {
 		producer.Close()
 	}
+
 	return pusher, closeFn
 }
 
