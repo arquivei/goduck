@@ -35,10 +35,11 @@ type Config struct {
 	MessagePool MessagePoolConfig
 	StaleAfter  time.Duration
 	Kafka       struct {
-		Brokers         string
-		Username        string
-		Password        string `secret:"true"`
-		CertificatePath string `default:""`
+		Brokers          string
+		Username         string
+		Password         string `secret:"true"`
+		SecurityProtocol string `default:"sasl_plaintext"`
+		CertificatePath  string `default:""`
 	}
 	Backoffmiddleware struct {
 		InitialDelay time.Duration `default:"200ms"`

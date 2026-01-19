@@ -97,6 +97,8 @@ func buildWithBatchStreamEngine(internalConfig pipelineBuilderOptions, pipe *pip
 			internalConfig.dlq.topic,
 			internalConfig.dlq.username,
 			internalConfig.dlq.password,
+			internalConfig.dlq.securityProtocol,
+			internalConfig.dlq.certificatePath,
 		)
 	}
 
@@ -137,6 +139,8 @@ func buildWithStreamEngine(builderOpts pipelineBuilderOptions, pipe *pipeline) e
 			builderOpts.dlq.topic,
 			builderOpts.dlq.username,
 			builderOpts.dlq.password,
+			builderOpts.dlq.securityProtocol,
+			builderOpts.dlq.certificatePath,
 		)
 	}
 
@@ -191,6 +195,8 @@ func buildWithRunOnceEngine(internalConfig pipelineBuilderOptions, pipe *pipelin
 			internalConfig.dlq.topic,
 			internalConfig.dlq.username,
 			internalConfig.dlq.password,
+			internalConfig.dlq.securityProtocol,
+			internalConfig.dlq.certificatePath,
 		)
 	}
 

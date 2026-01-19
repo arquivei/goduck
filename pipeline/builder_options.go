@@ -52,10 +52,12 @@ type pipelineBuilderOptions struct {
 
 	// dlq handles errors that have been retried and failed
 	dlq struct {
-		brokers  []string
-		topic    string
-		username string
-		password string
+		brokers          []string
+		topic            string
+		username         string
+		password         string
+		securityProtocol string
+		certificatePath  string
 	}
 
 	middlewares []endpoint.Middleware
