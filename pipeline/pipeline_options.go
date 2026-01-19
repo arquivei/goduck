@@ -29,6 +29,8 @@ func WithConfig(userConfig Config) Option {
 			c.dlq.topic = userConfig.InputStream.DLQKafkaTopic
 			c.dlq.username = userConfig.Kafka.Username
 			c.dlq.password = userConfig.Kafka.Password
+			c.dlq.securityProtocol = userConfig.Kafka.SecurityProtocol
+			c.dlq.certificatePath = userConfig.Kafka.CertificatePath
 		}
 
 		withMessagePoolConfig(userConfig.MessagePool)(c)

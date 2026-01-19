@@ -24,9 +24,9 @@ type dlqMiddleware struct {
 func WrapBatch(
 	next goduck.BatchProcessor,
 	brokers []string,
-	topic, username, password string,
+	topic, username, password, securityProtocol, certificatePath string,
 ) goduck.BatchProcessor {
-	return wrap(next, nil, brokers, topic, username, password)
+	return wrap(next, nil, brokers, topic, username, password, securityProtocol, certificatePath)
 }
 
 // WrapSingle wraps @next with a middleware that redirect any failed messages
@@ -34,16 +34,16 @@ func WrapBatch(
 func WrapSingle(
 	next goduck.Processor,
 	brokers []string,
-	topic, username, password string,
+	topic, username, password, securityProtocol, certificatePath string,
 ) goduck.Processor {
-	return wrap(nil, next, brokers, topic, username, password)
+	return wrap(nil, next, brokers, topic, username, password, securityProtocol, certificatePath)
 }
 
 func wrap(
 	nextBatch goduck.BatchProcessor,
 	nextSingle goduck.Processor,
 	brokers []string,
-	topic, username, password string,
+	topic, username, password, securityProtocol, certificatePath string,
 ) goduck.AnyProcessor {
 	if len(brokers) == 0 {
 		panic("empty kafka brokers")
@@ -58,11 +58,12 @@ func wrap(
 
 	kafkaProducer, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": strings.Join(brokers, ","),
-		"security.protocol": "sasl_plaintext",
 		"sasl.mechanisms":   "PLAIN",
 		"sasl.username":     username,
 		"sasl.password":     password,
 		"compression.codec": "gzip",
+		"security.protocol": securityProtocol,
+		"ssl.ca.location":   certificatePath,
 	})
 	if err != nil {
 		panic(err)
