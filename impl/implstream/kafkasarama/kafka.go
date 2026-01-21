@@ -1,13 +1,19 @@
 package kafkasarama
 
 import (
+	
 	"context"
+
+	"crypto/tls"
+	"crypto/x509"
 
 	"github.com/IBM/sarama"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/rs/zerolog/log"
 
 	"github.com/arquivei/goduck"
+
+	"os"
 )
 
 // KafkaConfigs contains the configs for kafka connection
@@ -18,6 +24,7 @@ type KafkaConfigs struct {
 
 	Username string
 	Password string
+	CAFile string
 }
 
 type goduckStream struct {
@@ -28,7 +35,22 @@ type goduckStream struct {
 }
 
 func MustNewKafkaStream(config KafkaConfigs) goduck.Stream {
+	caCert, err := os.ReadFile(CAFile)
+	if err != nil {
+		panic("Failed to read CA file")
+	}
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		panic("Failed to append CA cert")
+	}
+	tlsConfig := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
 	saramaConfig := sarama.NewConfig()
+	config.Net.TLS.Enable = true
+	config.Net.TLS.Config = tlsConfig
+
 	saramaConfig.Net.SASL.Enable = true
 	saramaConfig.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 	saramaConfig.Consumer.IsolationLevel = sarama.ReadCommitted
