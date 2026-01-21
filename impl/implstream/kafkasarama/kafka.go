@@ -30,22 +30,23 @@ type goduckStream struct {
 }
 
 func MustNewKafkaStream(config KafkaConfigs) goduck.Stream {
-	caCert, err := os.ReadFile(config.CAFile)
-	if err != nil {
-		panic("Failed to read CA file: " + config.CAFile)
-	}
-	caCertPool := x509.NewCertPool()
-	if !caCertPool.AppendCertsFromPEM(caCert) {
-		panic("Failed to append CA certs from file " + config.CAFile + "; the certificate file may be invalid or improperly formatted")
-	}
-	tlsConfig := &tls.Config{
-		RootCAs: caCertPool,
-	}
-
 	saramaConfig := sarama.NewConfig()
-	saramaConfig.Net.TLS.Enable = true
-	saramaConfig.Net.TLS.Config = tlsConfig
 
+	if config.CAFile != "" {
+		caCert, err := os.ReadFile(config.CAFile)
+		if err != nil {
+			panic("Failed to read CA file: " + config.CAFile)
+		}
+		caCertPool := x509.NewCertPool()
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			panic("Failed to append CA certs from file " + config.CAFile + "; the certificate file may be invalid or improperly formatted")
+		}
+		tlsConfig := &tls.Config{
+			RootCAs: caCertPool,
+		}
+		saramaConfig.Net.TLS.Enable = true
+		saramaConfig.Net.TLS.Config = tlsConfig
+	}
 	saramaConfig.Net.SASL.Enable = true
 	saramaConfig.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 	saramaConfig.Consumer.IsolationLevel = sarama.ReadCommitted
