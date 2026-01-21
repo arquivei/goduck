@@ -1,18 +1,13 @@
 package kafkasarama
 
 import (
-	
 	"context"
-
 	"crypto/tls"
 	"crypto/x509"
-
 	"github.com/IBM/sarama"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/rs/zerolog/log"
-
 	"github.com/arquivei/goduck"
-
 	"os"
 )
 
