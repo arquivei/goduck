@@ -37,11 +37,11 @@ type goduckStream struct {
 func MustNewKafkaStream(config KafkaConfigs) goduck.Stream {
 	caCert, err := os.ReadFile(config.CAFile)
 	if err != nil {
-		panic("Failed to read CA file")
+		panic("Failed to read CA file: " + config.CAFile)
 	}
 	caCertPool := x509.NewCertPool()
 	if !caCertPool.AppendCertsFromPEM(caCert) {
-		panic("Failed to append CA cert")
+		panic("Failed to append CA certs from file " + config.CAFile + "; the certificate file may be invalid or improperly formatted")
 	}
 	tlsConfig := &tls.Config{
 		RootCAs: caCertPool,
