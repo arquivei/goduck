@@ -35,7 +35,7 @@ type goduckStream struct {
 }
 
 func MustNewKafkaStream(config KafkaConfigs) goduck.Stream {
-	caCert, err := os.ReadFile(CAFile)
+	caCert, err := os.ReadFile(config.CAFile)
 	if err != nil {
 		panic("Failed to read CA file")
 	}
