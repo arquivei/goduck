@@ -48,8 +48,8 @@ func MustNewKafkaStream(config KafkaConfigs) goduck.Stream {
 	}
 
 	saramaConfig := sarama.NewConfig()
-	config.Net.TLS.Enable = true
-	config.Net.TLS.Config = tlsConfig
+	saramaConfig.Net.TLS.Enable = true
+	saramaConfig.Net.TLS.Config = tlsConfig
 
 	saramaConfig.Net.SASL.Enable = true
 	saramaConfig.Net.SASL.Mechanism = sarama.SASLTypePlaintext
