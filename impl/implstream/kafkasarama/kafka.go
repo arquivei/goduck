@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"os"
+
 	"github.com/IBM/sarama"
 	"github.com/arquivei/foundationkit/errors"
-	"github.com/rs/zerolog/log"
 	"github.com/arquivei/goduck"
-	"os"
+	"github.com/rs/zerolog/log"
 )
 
 // KafkaConfigs contains the configs for kafka connection
@@ -19,7 +20,7 @@ type KafkaConfigs struct {
 
 	Username string
 	Password string
-	CAFile string
+	CAFile   string
 }
 
 type goduckStream struct {
