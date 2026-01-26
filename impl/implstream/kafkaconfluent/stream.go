@@ -28,10 +28,12 @@ var (
 // Config contains the configuration necessary to build the
 // confluent-kafka-go goduck.Stream
 type Config struct {
-	Brokers  []string
-	GroupID  string
-	Username string
-	Password string
+	Brokers          []string
+	GroupID          string
+	Username         string
+	Password         string
+	SecurityProtocol string
+	CertificatePath  string
 
 	// RDKafkaConfig can specify librdkafka configs. If this is variable is set, the
 	// other variables (Brokers, GroupID, Username and Password) are ignored
@@ -65,6 +67,15 @@ type goduckStream struct {
 
 // New creates a confluent-kafka-go goduck.Stream with default configs
 func New(config Config) (goduck.Stream, error) {
+	if config.SecurityProtocol == "" {
+		config.SecurityProtocol = "sasl_plaintext"
+	}
+
+	return NewWithAuth(config)
+}
+
+// NewWithAuth creates a confluent-kafka-go goduck.Stream with authentication
+func NewWithAuth(config Config) (goduck.Stream, error) {
 	if len(config.Topics) == 0 {
 		return nil, ErrEmptyTopic
 	}
@@ -87,16 +98,18 @@ func New(config Config) (goduck.Stream, error) {
 			"group.id":                 config.GroupID,
 			"auto.offset.reset":        "earliest",
 			"enable.auto.offset.store": "false",
-			"security.protocol":        "sasl_plaintext",
+			"security.protocol":        config.SecurityProtocol,
 			"sasl.mechanisms":          "PLAIN",
 			"sasl.username":            config.Username,
 			"sasl.password":            config.Password,
+			"ssl.ca.location":          config.CertificatePath,
 		}
 	}
 
 	if config.PoolTimeout == 0 {
 		config.PoolTimeout = time.Second
 	}
+
 	return createStream(config)
 }
 
@@ -106,6 +119,16 @@ func MustNew(config Config) goduck.Stream {
 	if err != nil {
 		panic(err)
 	}
+	return s
+}
+
+// MustNewWithAuth creates a confluent-kafkam with authentication
+func MustNewWithAuth(config Config) goduck.Stream {
+	s, err := NewWithAuth(config)
+	if err != nil {
+		panic(err)
+	}
+
 	return s
 }
 
