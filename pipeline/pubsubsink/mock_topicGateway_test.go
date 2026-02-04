@@ -5,7 +5,7 @@ package pubsubsink
 import (
 	context "context"
 
-	pubsub "cloud.google.com/go/pubsub"
+	pubsub "cloud.google.com/go/pubsub/v2"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -49,7 +49,7 @@ type mockTopicGateway_Exists_Call struct {
 }
 
 // Exists is a helper method to define mock.On call
-//  - ctx context.Context
+//   - ctx context.Context
 func (_e *mockTopicGateway_Expecter) Exists(ctx interface{}) *mockTopicGateway_Exists_Call {
 	return &mockTopicGateway_Exists_Call{Call: _e.mock.On("Exists", ctx)}
 }
@@ -88,8 +88,8 @@ type mockTopicGateway_Publish_Call struct {
 }
 
 // Publish is a helper method to define mock.On call
-//  - ctx context.Context
-//  - msg *pubsub.Message
+//   - ctx context.Context
+//   - msg *pubsub.Message
 func (_e *mockTopicGateway_Expecter) Publish(ctx interface{}, msg interface{}) *mockTopicGateway_Publish_Call {
 	return &mockTopicGateway_Publish_Call{Call: _e.mock.On("Publish", ctx, msg)}
 }
