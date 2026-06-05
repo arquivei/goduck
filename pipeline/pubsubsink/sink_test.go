@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/arquivei/goduck/pipeline"
 	"github.com/stretchr/testify/assert"
 )
