@@ -3,7 +3,7 @@ package pubsubsink
 import (
 	"context"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck/pipeline"
 )

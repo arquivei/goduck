@@ -5,7 +5,7 @@ package pubsubsink
 import (
 	context "context"
 
-	pubsub "cloud.google.com/go/pubsub"
+	pubsub "cloud.google.com/go/pubsub/v2"
 	mock "github.com/stretchr/testify/mock"
 )
 
