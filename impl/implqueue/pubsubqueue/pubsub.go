@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/arquivei/foundationkit/errors"
 	"github.com/arquivei/goduck"
 )
@@ -17,12 +17,12 @@ type PubsubConfigs struct {
 }
 
 type pubsubConsumer struct {
-	client       *pubsub.Client
-	subscription *pubsub.Subscription
-	nextMessage  chan *pubsub.Message
-	errChannel   chan error
-	closeOnce    *sync.Once
-	cancelFn     func()
+	client      *pubsub.Client
+	subscriber  *pubsub.Subscriber
+	nextMessage chan *pubsub.Message
+	errChannel  chan error
+	closeOnce   *sync.Once
+	cancelFn    func()
 }
 
 func New(config PubsubConfigs) (goduck.MessagePool, error) {
@@ -31,13 +31,13 @@ func New(config PubsubConfigs) (goduck.MessagePool, error) {
 	if err != nil {
 		return nil, errors.E(op, err)
 	}
-	subscription := client.Subscription(config.Subscription)
+	subscriber := client.Subscriber(config.Subscription)
 	consumer := &pubsubConsumer{
-		client:       client,
-		subscription: subscription,
-		nextMessage:  make(chan *pubsub.Message),
-		errChannel:   make(chan error),
-		closeOnce:    &sync.Once{},
+		client:      client,
+		subscriber:  subscriber,
+		nextMessage: make(chan *pubsub.Message),
+		errChannel:  make(chan error),
+		closeOnce:   &sync.Once{},
 	}
 	go consumer.start()
 	return consumer, nil
@@ -47,7 +47,7 @@ func (p *pubsubConsumer) start() {
 	const op = errors.Op("start")
 	ctx, cancelFn := context.WithCancel(context.Background())
 	p.cancelFn = cancelFn
-	err := p.subscription.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+	err := p.subscriber.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 		select {
 		case p.nextMessage <- msg:
 		case <-ctx.Done():
