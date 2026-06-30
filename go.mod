@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/pubsub/v2 v2.6.0
 	github.com/IBM/sarama v1.50.3
 	github.com/arquivei/foundationkit v0.10.6
-	github.com/confluentinc/confluent-kafka-go/v2 v2.14.2
+	github.com/confluentinc/confluent-kafka-go/v2 v2.15.0
 	github.com/go-kit/kit v0.13.0
 	github.com/imkira/go-observer v1.0.3
 	github.com/olivere/elastic/v7 v7.0.32
@@ -75,7 +75,7 @@ require (
 	cloud.google.com/go/iam v1.11.0 // indirect
 	cloud.google.com/go/logging v1.18.0 // indirect
 	cloud.google.com/go/monitoring v1.29.0 // indirect
-	cloud.google.com/go/storage v1.62.3
+	cloud.google.com/go/storage v1.63.0
 	cloud.google.com/go/trace v1.16.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14 // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
@@ -120,7 +120,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.285.0 // indirect
 	google.golang.org/genproto v0.0.0-20260615183401-62b3387ff324 // indirect
-	google.golang.org/grpc v1.81.1
+	google.golang.org/grpc v1.82.0
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
