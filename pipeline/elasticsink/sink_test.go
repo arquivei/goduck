@@ -17,6 +17,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+const (
+	testDocumentID = "ID1"
+	testIndex      = "index1"
+)
+
 func TestAddBulk(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -46,8 +51,8 @@ func TestAddBulk(t *testing.T) {
 			}(),
 			input: []pipeline.SinkMessage{
 				IndexMessage{
-					ID:    "ID1",
-					Index: "index1",
+					ID:    testDocumentID,
+					Index: testIndex,
 					Document: map[string]interface{}{
 						"a": 2,
 						"b": 3,
@@ -55,7 +60,7 @@ func TestAddBulk(t *testing.T) {
 				},
 				IndexMessage{
 					ID:    "ID2",
-					Index: "index1",
+					Index: testIndex,
 					Document: map[string]interface{}{
 						"a": 4,
 						"b": 4,
@@ -91,12 +96,12 @@ func TestAddBulk(t *testing.T) {
 			}(),
 			input: []pipeline.SinkMessage{
 				DeleteMessage{
-					ID:    "ID1",
-					Index: "index1",
+					ID:    testDocumentID,
+					Index: testIndex,
 				},
 				DeleteMessage{
 					ID:    "ID2",
-					Index: "index1",
+					Index: testIndex,
 				},
 				DeleteMessage{
 					ID:    "ID3",
@@ -131,7 +136,7 @@ func TestAddBulk(t *testing.T) {
 			}(),
 			input: []pipeline.SinkMessage{
 				IndexMessage{
-					ID: "ID1",
+					ID: testDocumentID,
 					Document: map[string]interface{}{
 						"a": 2,
 						"b": 3,
@@ -158,8 +163,8 @@ func TestAddBulk(t *testing.T) {
 			}(),
 			input: []pipeline.SinkMessage{
 				IndexMessage{
-					ID:    "ID1",
-					Index: "index1",
+					ID:    testDocumentID,
+					Index: testIndex,
 					Document: map[string]interface{}{
 						"Value": "potato",
 					},

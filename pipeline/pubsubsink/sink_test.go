@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	testTopicID = "topic1"
+)
+
 func TestSink_Store(t *testing.T) {
 	type args struct {
 		ctx      context.Context
@@ -24,23 +28,13 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "success - no messages",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic1").Return(topic1).Once()
-
-				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
-				topic1.EXPECT().Stop().Once()
-
-				result1 := newMockPublishResult(t)
-				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message1"),
-				}).Return(result1).Once()
-				result1.EXPECT().Get(context.Background()).Return("message1", nil).Once()
+				expectTopicPublishes(t, m, testTopicID, nil, "message1")
 			},
 			args: args{
 				ctx: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message1"),
 					},
 				},
@@ -50,33 +44,17 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "success - MUlti messages with same topic",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic1").Return(topic1).Once()
-
-				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
-				topic1.EXPECT().Stop().Once()
-
-				result1 := newMockPublishResult(t)
-				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message1"),
-				}).Return(result1).Once()
-				result1.EXPECT().Get(context.Background()).Return("message1", nil).Once()
-
-				result2 := newMockPublishResult(t)
-				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message2"),
-				}).Return(result2).Once()
-				result2.EXPECT().Get(context.Background()).Return("message2", nil).Once()
+				expectTopicPublishes(t, m, testTopicID, nil, "message1", "message2")
 			},
 			args: args{
 				ctx: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message1"),
 					},
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message2"),
 					},
 				},
@@ -86,41 +64,14 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "success - MUlti messages with multiple topics",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic1").Return(topic1).Once()
-
-				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
-				topic1.EXPECT().Stop().Once()
-
-				result1 := newMockPublishResult(t)
-				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message1"),
-				}).Return(result1).Once()
-				result1.EXPECT().Get(context.Background()).Return("message1", nil).Once()
-
-				result2 := newMockPublishResult(t)
-				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message2"),
-				}).Return(result2).Once()
-				result2.EXPECT().Get(context.Background()).Return("message2", nil).Once()
-
-				topic2 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic2").Return(topic2).Once()
-				topic2.EXPECT().Exists(context.Background()).Return(true, nil).Once()
-				topic2.EXPECT().Stop().Once()
-
-				result3 := newMockPublishResult(t)
-				topic2.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message3"),
-				}).Return(result3).Once()
-				result3.EXPECT().Get(context.Background()).Return("message3", nil).Once()
-
+				expectTopicPublishes(t, m, testTopicID, nil, "message1", "message2")
+				expectTopicPublishes(t, m, "topic2", nil, "message3")
 			},
 			args: args{
 				ctx: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message1"),
 					},
 					SinkMessage{
@@ -128,7 +79,7 @@ func TestSink_Store(t *testing.T) {
 						Msg:   []byte("message3"),
 					},
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message2"),
 					},
 				},
@@ -149,7 +100,7 @@ func TestSink_Store(t *testing.T) {
 			name: "error - topic does not exist",
 			setupMock: func(m *MockPubsubClientGateway) {
 				topic1 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic1").Return(topic1).Once()
+				m.EXPECT().Topic(testTopicID).Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(false, nil).Once()
 			},
@@ -157,7 +108,7 @@ func TestSink_Store(t *testing.T) {
 				ctx: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message1"),
 					},
 				},
@@ -168,7 +119,7 @@ func TestSink_Store(t *testing.T) {
 			name: "error - topic exists check fails",
 			setupMock: func(m *MockPubsubClientGateway) {
 				topic1 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic1").Return(topic1).Once()
+				m.EXPECT().Topic(testTopicID).Return(topic1).Once()
 
 				topic1.EXPECT().Exists(context.Background()).Return(false, errors.New("error")).Once()
 			},
@@ -176,7 +127,7 @@ func TestSink_Store(t *testing.T) {
 				ctx: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message1"),
 					},
 				},
@@ -186,23 +137,13 @@ func TestSink_Store(t *testing.T) {
 		{
 			name: "error - publish fails",
 			setupMock: func(m *MockPubsubClientGateway) {
-				topic1 := newMockTopicGateway(t)
-				m.EXPECT().Topic("topic1").Return(topic1).Once()
-
-				topic1.EXPECT().Exists(context.Background()).Return(true, nil).Once()
-				topic1.EXPECT().Stop().Once()
-
-				result1 := newMockPublishResult(t)
-				topic1.EXPECT().Publish(context.Background(), &pubsub.Message{
-					Data: []byte("message1"),
-				}).Return(result1).Once()
-				result1.EXPECT().Get(context.Background()).Return("message1", errors.New("error")).Once()
+				expectTopicPublishes(t, m, testTopicID, errors.New("error"), "message1")
 			},
 			args: args{
 				ctx: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
-						Topic: "topic1",
+						Topic: testTopicID,
 						Msg:   []byte("message1"),
 					},
 				},
@@ -250,6 +191,23 @@ func TestSink_Store(t *testing.T) {
 				t.Errorf("Sink.Store() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func expectTopicPublishes(t *testing.T, gateway *MockPubsubClientGateway, topicID string, publishError error, messages ...string) {
+	t.Helper()
+
+	topic := newMockTopicGateway(t)
+	gateway.EXPECT().Topic(topicID).Return(topic).Once()
+	topic.EXPECT().Exists(context.Background()).Return(true, nil).Once()
+	topic.EXPECT().Stop().Once()
+
+	for _, message := range messages {
+		result := newMockPublishResult(t)
+		topic.EXPECT().Publish(context.Background(), &pubsub.Message{
+			Data: []byte(message),
+		}).Return(result).Once()
+		result.EXPECT().Get(context.Background()).Return(message, publishError).Once()
 	}
 }
 

@@ -18,7 +18,10 @@ func TestSimpleQueue(t *testing.T) {
 	queue := implqueue.NewMock(dataset.makeBytes())
 	engine := jobpoolengine.New(queue, processor, 2)
 	engine.Run(context.Background())
-	dataset.validate(processor.consumed)
+	consumed := processor.messages()
+	if !dataset.validate(consumed) {
+		t.Errorf("consumed messages %v do not match dataset %v", consumed, dataset.items)
+	}
 }
 
 func TestSimpleStream(t *testing.T) {
@@ -28,5 +31,8 @@ func TestSimpleStream(t *testing.T) {
 	stream := implstream.NewMock(dataset.makeBytes())
 	engine := streamengine.New(processor, []goduck.Stream{stream})
 	engine.Run(context.Background())
-	dataset.validate(processor.consumed)
+	consumed := processor.messages()
+	if !dataset.validate(consumed) {
+		t.Errorf("consumed messages %v do not match dataset %v", consumed, dataset.items)
+	}
 }

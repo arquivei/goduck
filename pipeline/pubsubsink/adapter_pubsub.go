@@ -21,9 +21,9 @@ func NewPubsubClientAdapter(client *pubsub.Client) PubsubClientGateway {
 
 func (c clientAdapter) Topic(id string) topicGateway {
 	return &topicAdapter{
-		publisher:   c.Client.Publisher(id),
+		publisher:   c.Publisher(id),
 		adminClient: c.Client,
-		topicID:     fmt.Sprintf("projects/%s/topics/%s", c.Client.Project(), id),
+		topicID:     fmt.Sprintf("projects/%s/topics/%s", c.Project(), id),
 	}
 }
 
