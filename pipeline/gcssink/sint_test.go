@@ -13,6 +13,14 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
+const (
+	testMetadataValue = "value"
+	testContentType   = "application/json"
+	testBucket        = "bucket"
+	testMetadataKey   = "key"
+	testStoragePath   = "path"
+)
+
 func TestMustNewParallel(t *testing.T) {
 	t.Parallel()
 
@@ -36,7 +44,7 @@ func TestMustNewParallel(t *testing.T) {
 					mockGateway.EXPECT().Close().Return(nil).Once()
 					return mockGateway
 				},
-				contentType:   "application/json",
+				contentType:   testContentType,
 				chunkSize:     100,
 				retrierOption: []storage.RetryOption{},
 			},
@@ -49,7 +57,7 @@ func TestMustNewParallel(t *testing.T) {
 				clientGateway: func(t *testing.T) GcsClientGateway {
 					return nil
 				},
-				contentType:   "application/json",
+				contentType:   testContentType,
 				chunkSize:     100,
 				retrierOption: []storage.RetryOption{},
 			},
@@ -77,7 +85,7 @@ func TestMustNewParallel(t *testing.T) {
 					mockGateway := NewMockGcsClientGateway(t)
 					return mockGateway
 				},
-				contentType:   "application/json",
+				contentType:   testContentType,
 				chunkSize:     0,
 				retrierOption: []storage.RetryOption{},
 			},
@@ -131,9 +139,9 @@ func TestStore(t *testing.T) {
 					SinkMessage{
 						Data:        []byte("test"),
 						StoragePath: "storage/path",
-						Bucket:      "bucket",
+						Bucket:      testBucket,
 						Metadata: map[string]string{
-							"key": "value",
+							testMetadataKey: testMetadataValue,
 						},
 					},
 					SinkMessage{
@@ -198,9 +206,9 @@ func TestStore(t *testing.T) {
 					SinkMessage{
 						Data:        nil,
 						StoragePath: "storage/path",
-						Bucket:      "bucket",
+						Bucket:      testBucket,
 						Metadata: map[string]string{
-							"key": "value",
+							testMetadataKey: testMetadataValue,
 						},
 					},
 				},
@@ -214,23 +222,23 @@ func TestStore(t *testing.T) {
 			args: args{
 				setupMock: func(m *MockGcsClientGateway) {
 					m.EXPECT().GetWriter(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Times(1)
-					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to write"), CodeFailedToWriteAtBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))).Times(1)
+					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to write"), CodeFailedToWriteAtBucket, errors.KV(testBucket, testBucket), errors.KV(testStoragePath, testStoragePath))).Times(1)
 					m.EXPECT().Close().Return(nil).Times(1)
 				},
 				context: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
 						Data:        []byte("test"),
-						StoragePath: "path",
-						Bucket:      "bucket",
+						StoragePath: testStoragePath,
+						Bucket:      testBucket,
 						Metadata: map[string]string{
-							"key": "value",
+							testMetadataKey: testMetadataValue,
 						},
 					},
 				},
 			},
 			err:           true,
-			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to write"), CodeFailedToWriteAtBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))})).Error(),
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to write"), CodeFailedToWriteAtBucket, errors.KV(testBucket, testBucket), errors.KV(testStoragePath, testStoragePath))})).Error(),
 		},
 
 		{
@@ -238,23 +246,23 @@ func TestStore(t *testing.T) {
 			args: args{
 				setupMock: func(m *MockGcsClientGateway) {
 					m.EXPECT().GetWriter(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Times(1)
-					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to close"), CodeFailedToCloseBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))).Times(1)
+					m.EXPECT().Write(mock.Anything, mock.Anything).Return(errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to close"), CodeFailedToCloseBucket, errors.KV(testBucket, testBucket), errors.KV(testStoragePath, testStoragePath))).Times(1)
 					m.EXPECT().Close().Return(nil).Times(1)
 				},
 				context: context.Background(),
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
 						Data:        []byte("test"),
-						StoragePath: "path",
-						Bucket:      "bucket",
+						StoragePath: testStoragePath,
+						Bucket:      testBucket,
 						Metadata: map[string]string{
-							"key": "value",
+							testMetadataKey: testMetadataValue,
 						},
 					},
 				},
 			},
 			err:           true,
-			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to close"), CodeFailedToCloseBucket, errors.KV("bucket", "bucket"), errors.KV("path", "path"))})).Error(),
+			expectedError: errors.E(errors.Op("gcssink.gcsParallelWriter.Store"), ErrFailedToStoreMessages, errors.KV("errors", []error{errors.E(errors.Op("gcssink.gcsClientGateway.Write"), errors.New("fail to close"), CodeFailedToCloseBucket, errors.KV(testBucket, testBucket), errors.KV(testStoragePath, testStoragePath))})).Error(),
 		},
 	}
 
@@ -268,7 +276,7 @@ func TestStore(t *testing.T) {
 					test.args.setupMock(gateway)
 				}
 
-				sink, closeFn := MustNewParallel(gateway, "application/json", 100, []storage.RetryOption{})
+				sink, closeFn := MustNewParallel(gateway, testContentType, 100, []storage.RetryOption{})
 				defer closeFn()
 
 				err := sink.Store(test.args.context, test.args.messages...)
@@ -310,10 +318,10 @@ func TestPanicToError(t *testing.T) {
 				messages: []pipeline.SinkMessage{
 					SinkMessage{
 						Data:        []byte("test"),
-						StoragePath: "path",
-						Bucket:      "bucket",
+						StoragePath: testStoragePath,
+						Bucket:      testBucket,
 						Metadata: map[string]string{
-							"key": "value",
+							testMetadataKey: testMetadataValue,
 						},
 					},
 				},
@@ -332,7 +340,7 @@ func TestPanicToError(t *testing.T) {
 				test.args.setupMock(gateway)
 			}
 
-			sink, closeFn := MustNewParallel(gateway, "application/json", 100, []storage.RetryOption{})
+			sink, closeFn := MustNewParallel(gateway, testContentType, 100, []storage.RetryOption{})
 			defer closeFn()
 
 			err := sink.Store(test.args.context, test.args.messages...)

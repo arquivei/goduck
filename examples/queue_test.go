@@ -32,8 +32,8 @@ func isIn(subSet, superSet []string) bool {
 		for _, item2 := range superSet {
 			if item1 == item2 {
 				found = true
+				break
 			}
-			break
 		}
 		if !found {
 			return false

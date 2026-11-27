@@ -13,8 +13,9 @@ import (
 type MockQueue struct {
 	items         []goduck.RawMessage
 	consumedItems []bool
-	currentIdx    int
-	mtx           *sync.Mutex
+	// Share the cursor across value receiver copies instead of copying mutable state.
+	currentIdx *int
+	mtx        *sync.Mutex
 }
 
 func NewMock(items [][]byte) *MockQueue {
@@ -31,7 +32,7 @@ func NewMock(items [][]byte) *MockQueue {
 	return &MockQueue{
 		items:         messages,
 		consumedItems: consumedItems,
-		currentIdx:    0,
+		currentIdx:    new(int),
 		mtx:           &sync.Mutex{},
 	}
 }
@@ -53,12 +54,12 @@ func (m *MockQueue) Next(ctx context.Context) (goduck.RawMessage, error) {
 	nElems := len(m.consumedItems)
 
 	for tries := 0; tries < nElems; tries++ {
-		if !m.consumedItems[m.currentIdx] {
-			msg := m.items[m.currentIdx]
-			m.currentIdx = (m.currentIdx + 1) % nElems
+		if !m.consumedItems[*m.currentIdx] {
+			msg := m.items[*m.currentIdx]
+			*m.currentIdx = (*m.currentIdx + 1) % nElems
 			return msg, nil
 		}
-		m.currentIdx = (m.currentIdx + 1) % nElems
+		*m.currentIdx = (*m.currentIdx + 1) % nElems
 	}
 
 	return nil, io.EOF
@@ -95,6 +96,11 @@ func (m MockQueue) Close() error {
 
 // IsEmpty tests if all elements in the queue are consumed
 func (m MockQueue) IsEmpty() bool {
+	if len(m.consumedItems) == 0 {
+		return true
+	}
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
 	for i := 0; i < len(m.consumedItems); i++ {
 		if !m.consumedItems[i] {
 			return false
